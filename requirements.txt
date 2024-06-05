@@ -2,7 +2,7 @@ git+https://github.com/cedadev/ceda-elasticsearch-tools.git
 git+https://github.com/Mahir-Sparkess/django-haystack-elasticsearch.git
 asgiref==3.7.0
 certifi==2021.5.30
-cffi==1.14.6
+cffi==1.16.0
 chardet==4.0.0
 cryptography==3.4.7
 defusedxml==0.7.1
