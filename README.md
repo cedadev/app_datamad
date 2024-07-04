@@ -2,6 +2,10 @@
 
 [User documentation](https://cedadev.github.io/datamad2/)
 
+## Status - Current Developments
+
+See https://docs.google.com/document/d/1Lhu0ALzroLaPMXYi1x3lUFO-UgkpnZ0P8DDgp1ysGv8/edit for details on current work with deployments.
+
 ## Editing docs
 
 The documentation is written using Jekyll. A usefull getting started guide
