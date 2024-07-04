@@ -17,10 +17,15 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.shortcuts import HttpResponse
+
+def health_view(request):
+    return HttpResponse("OK")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('datamad2.urls')),
+    path('health/', health_view, name="health"),
     path('api/', include('datamad2_api.urls')),
     path('oauth/', include('jira_oauth.urls'))
 ]
