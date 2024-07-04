@@ -13,7 +13,7 @@ from django.core.files.storage import FileSystemStorage
 from django.core.exceptions import ValidationError
 import hashlib
 import os
-from datamadsite import settings
+from django.conf import settings
 
 DOCUMENT_TYPES = (
     ("support", "Support"),
