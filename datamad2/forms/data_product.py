@@ -11,7 +11,7 @@ __contact__ = 'richard.d.smith@stfc.ac.uk'
 from django import forms
 from datamad2.models import DataProduct, Grant
 from datamad2.models.data_management_plans import PreservationPlan, DataFormat
-from bootstrap_datepicker_plus import DatePickerInput
+from bootstrap_datepicker_plus.widgets import DatePickerInput
 
 from datamad2.forms.mixins import CrispySubmitMixin
 
@@ -40,8 +40,8 @@ class DataProductMetaBase:
 
 class DigitalDataProductForm(DataProductBaseFormMixin, forms.ModelForm):
 
-    delivery_date = forms.DateField(input_formats=['%d/%m/%Y'], widget=DatePickerInput(format='%d/%m/%Y'), required=False)
-    embargo_date = forms.DateField(input_formats=['%d/%m/%Y'], widget=DatePickerInput(format='%d/%m/%Y'), required=False)
+    delivery_date = forms.DateField(input_formats=['%d/%m/%Y'], widget=DatePickerInput(options={'format':'%d/%m/%Y'}), required=False)
+    embargo_date = forms.DateField(input_formats=['%d/%m/%Y'], widget=DatePickerInput(options={'format':'%d/%m/%Y'}), required=False)
 
     class Meta(DataProductMetaBase):
         model = DataProduct
@@ -72,7 +72,7 @@ class ModelSourceDataProductForm(DataProductBaseFormMixin, forms.ModelForm):
 
 class PhysicalDataProductForm(DataProductBaseFormMixin, forms.ModelForm):
 
-    delivery_date = forms.DateField(input_formats=['%d/%m/%Y'], widget=DatePickerInput(format='%d/%m/%Y'), required=False)
+    delivery_date = forms.DateField(input_formats=['%d/%m/%Y'], widget=DatePickerInput(options={'format':'%d/%m/%Y'}), required=False)
 
     class Meta(DataProductMetaBase):
         model = DataProduct
@@ -87,7 +87,7 @@ class PhysicalDataProductForm(DataProductBaseFormMixin, forms.ModelForm):
 
 class HardcopyDataProductForm(DataProductBaseFormMixin, forms.ModelForm):
 
-    delivery_date = forms.DateField(input_formats=['%d/%m/%Y'], widget=DatePickerInput(format='%d/%m/%Y'), required=False)
+    delivery_date = forms.DateField(input_formats=['%d/%m/%Y'], widget=DatePickerInput(options={'format':'%d/%m/%Y'}), required=False)
 
     class Meta(DataProductMetaBase):
         model = DataProduct

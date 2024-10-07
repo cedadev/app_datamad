@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 from datamadsite.settings_local import *
 import os
 
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -40,6 +39,7 @@ INSTALLED_APPS = [
     'cookielaw',
     'rest_framework',
     'crispy_forms',
+    "crispy_bootstrap4",
     'datamad2',
     'datamad2_api',
     'haystack',
@@ -97,9 +97,20 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         'USER': 'django'
-    }
+    },
 }
 
+"""
+    'DataBank': {
+    'ENGINE': "django.db.backends.mysql",
+    'OPTIONS': {"read_default_file": os.path.join(
+            BASE_DIR,
+            'Databank.conf'),
+            #"driver": "ODBC Driver 17 for SQL Server"
+            },
+},
+"""
+    
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -124,14 +135,11 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'Etc/GMT-1'
-
 USE_I18N = True
-
-USE_L10N = True
-
 USE_TZ = True
+
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
@@ -151,6 +159,7 @@ REST_FRAMEWORK = {
 
 AUTH_USER_MODEL = 'datamad2.User'
 
+"""
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack_elasticsearch.elasticsearch7.Elasticsearch7SearchEngine',
@@ -168,6 +177,9 @@ HAYSTACK_CONNECTIONS = {
     }
 }
 
+
 HAYSTACK_FACET_LIMIT = 100
+"""
+
 
 from .settings_local import *

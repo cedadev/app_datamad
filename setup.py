@@ -13,8 +13,6 @@ from os import path
 
 here = path.abspath(path.dirname(__file__))
 
-
-
 setup(
     name='datamad2',
 
@@ -53,7 +51,7 @@ setup(
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
 
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.12',
     ],
 
     # What does your project relate to?
