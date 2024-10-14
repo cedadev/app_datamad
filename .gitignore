@@ -15,6 +15,7 @@ static_media
 _site
 vendor
 /static
+/staticfiles
 # scripts
 .vscode
 Databank.conf
@@ -22,3 +23,5 @@ sql_alchemy_mysql_conn_string.txt
 odbc_conn_scratch.py
 /local_temp
 /import_csvs
+.pgpass
+Dockerfile_deploy_local

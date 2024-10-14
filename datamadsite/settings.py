@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'whitenoise.runserver_nostatic',
     'orgtheme_datamad',
     'fwtheme_django_ceda_serv',
     'fwtheme_django',
@@ -58,6 +59,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -86,6 +88,12 @@ TEMPLATES = [
     },
 ]
 
+STORAGES = {
+    "staticfiles": {
+                    "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+                   },
+}
+
 WSGI_APPLICATION = 'datamadsite.wsgi.application'
 
 
@@ -94,18 +102,26 @@ WSGI_APPLICATION = 'datamadsite.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        'USER': 'django'
+        'ENGINE': 'django.db.backends.postgresql',
+        'OPTIONS': {
+            'service': "datamad-test-db",
+            'passfile': '.pgpass',
+        },
     },
 }
 
 """
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'USER': 'django'
+
+
     'DataBank': {
     'ENGINE': "django.db.backends.mysql",
     'OPTIONS': {"read_default_file": os.path.join(
             BASE_DIR,
-            'Databank.conf'),
+            '/local_temp/Databank.conf'),
             #"driver": "ODBC Driver 17 for SQL Server"
             },
 },
@@ -181,5 +197,6 @@ HAYSTACK_CONNECTIONS = {
 HAYSTACK_FACET_LIMIT = 100
 """
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 from .settings_local import *
