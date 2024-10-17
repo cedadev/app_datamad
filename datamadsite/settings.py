@@ -102,19 +102,23 @@ WSGI_APPLICATION = 'datamadsite.wsgi.application'
 
 DATABASES = {
     'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'USER': 'django'},
+}
+
+"""
+    'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'OPTIONS': {
             'service': "datamad-test-db",
             'passfile': '.pgpass',
         },
     },
-}
 
-"""
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        'USER': 'django'
+
+
+
 
 
     'DataBank': {
