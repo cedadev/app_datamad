@@ -24,7 +24,7 @@ SECRET_KEY = ''
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -97,9 +97,61 @@ STORAGES = {
 WSGI_APPLICATION = 'datamadsite.wsgi.application'
 
 
-# Database
+# Databases
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
+"""
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'USER': 'django'},
+
+    'DataBank': {
+        'ENGINE': "django.db.backends.mysql",
+        'OPTIONS': {"read_default_file": os.path.join(
+            BASE_DIR,
+            './local_temp/Databank.conf'),
+            },
+    },
+}
+"""
+
+
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'USER': 'django'},
+
+    'DataBank': {
+        'ENGINE': "django.db.backends.mysql",
+        'OPTIONS': {"read_default_file": os.path.join(
+            BASE_DIR, 'local_temp/Databank.conf'),
+        }
+    },
+}
+"""
+
+
+    'DataBank': {
+        'ENGINE': "django.db.backends.mysql",
+        'OPTIONS': {"read_default_file": os.path.join(
+            BASE_DIR, 'Databank.conf'),
+            },
+
+    'temp': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'USER': 'django'},
+
+"""
+
+
+
+
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -107,7 +159,6 @@ DATABASES = {
         'USER': 'django'},
 }
 
-"""
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'OPTIONS': {
@@ -115,11 +166,6 @@ DATABASES = {
             'passfile': '.pgpass',
         },
     },
-
-
-
-
-
 
     'DataBank': {
     'ENGINE': "django.db.backends.mysql",
