@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "datamad2"
+version = "0.1.0"
+description = "DataMAD is a NERC system for managing NERC grants and data archiving amongst the five NERC datacentres. The Django application provides processes to claim grants from data producing projects and generate tickets in JIRA to manage the pipeline from project start to data production, delivery and archiving."
+authors = ["matthew.paice <matthew.paice@stfc.ac.uk> Richard Smith <> Eleanor Smith <>"]
+license = "'MIT'"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
