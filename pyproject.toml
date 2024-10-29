@@ -18,9 +18,6 @@ packages = [
     { include = "datamad2"},
     { include = "datamad2_api"},
     { include = "datamadsite"},
-    { include = "docs"},
-    { include = "media"},
-    { include = "tools"},
 ]
 
 [tool.poetry.dependencies]
