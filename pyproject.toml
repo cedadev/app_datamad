@@ -7,7 +7,7 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.11.6"
 
 # CEDA dependencies
 ceda-elasticsearch-tools = {git = "https://github.com/cedadev/ceda-elasticsearch-tools.git", rev = "d365338d7243d1bff2a1266c2129ce72a79b2af1"}
