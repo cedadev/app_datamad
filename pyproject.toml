@@ -16,7 +16,7 @@ keywords = ['web', 'django', 'DataMad', 'NERC']
 
 packages = [
     { include = "datamad2"},
-    { include = "datamad_api"},
+    { include = "datamad2_api"},
     { include = "datamadsite"},
     { include = "docs"},
     { include = "media"},
@@ -82,7 +82,7 @@ django-stubs = {extras = ["compatible-mypy"], version = "^5.0.0"}
 strict = false
 plugins = ["mypy_django_plugin.main"]
 ignore_missing_imports = true
-packages = "datamad2,datamad_api,datamadsite"
+packages = "datamad2,datamad2_api,datamadsite"
 
 [build-system]
 requires = ["poetry-core"]
