@@ -75,10 +75,14 @@ six = "1.16.0"
 sqlparse = "0.5.1"
 whitenoise = "6.7.0"
 
-# Not installed from original requirements.txt as I cannot work out what they do in the context of the app, CI/CD or testing
-# jaraco.classes = "3.4.0"
-# jaraco.context = "6.0.1"
-# jaraco.functools = "4.1.0"
+[tool.poetry.group.dev.dependencies]
+django-stubs = {extras = ["compatible-mypy"], version = "^5.0.0"}
+
+[tool.mypy]
+strict = false
+plugins = ["mypy_django_plugin.main"]
+ignore_missing_imports = true
+packages = "datamad2,datamad_api,datamadsite"
 
 
 [build-system]
