@@ -28,6 +28,8 @@ django-upgrade==1.21.0 ; python_full_version >= "3.11.6" and python_full_version
 django==4.2 ; python_full_version >= "3.11.6" and python_version < "4.0"
 djangorestframework==3.15.2 ; python_full_version >= "3.11.6" and python_full_version < "4.0.0"
 docopt==0.6.2 ; python_full_version >= "3.11.6" and python_full_version < "4.0.0"
+docxcompose==1.4.0 ; python_full_version >= "3.11.6" and python_full_version < "4.0.0"
+docxtpl==0.18.0 ; python_full_version >= "3.11.6" and python_full_version < "4.0.0"
 elastic-transport==7.16.0 ; python_full_version >= "3.11.6" and python_full_version < "4.0.0"
 elasticsearch==7.6.0 ; python_full_version >= "3.11.6" and python_version < "4"
 fwtheme-django @ git+https://github.com/cedadev/fwtheme-django.git@786021bdb6f34cf693d44e96803a5df7d88b76fd ; python_full_version >= "3.11.6" and python_full_version < "4.0.0"

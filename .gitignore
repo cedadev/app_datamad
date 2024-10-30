@@ -25,3 +25,4 @@ odbc_conn_scratch.py
 /import_csvs
 .pgpass
 Dockerfile_deploy_local
+requirements.txt

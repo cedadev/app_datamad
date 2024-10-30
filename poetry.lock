@@ -795,6 +795,47 @@ files = [
 ]
 
 [[package]]
+name = "docxcompose"
+version = "1.4.0"
+description = "Compose .docx documents"
+optional = false
+python-versions = "*"
+files = [
+    {file = "docxcompose-1.4.0.tar.gz", hash = "sha256:bcf2799a0b63c29eb77a3d799a2f28443ae0f69f8691ff3d753f706be515c3e9"},
+]
+
+[package.dependencies]
+babel = "*"
+lxml = "*"
+python-docx = ">=0.8.8"
+setuptools = "*"
+six = "*"
+
+[package.extras]
+test = ["pytest"]
+tests = ["pytest"]
+
+[[package]]
+name = "docxtpl"
+version = "0.18.0"
+description = "Python docx template engine"
+optional = false
+python-versions = "*"
+files = [
+    {file = "docxtpl-0.18.0-py2.py3-none-any.whl", hash = "sha256:e722b4ae2f2b41aa5d6e5a382e589a380f6b3e0623ced7dceedea1c1aa64f119"},
+    {file = "docxtpl-0.18.0.tar.gz", hash = "sha256:854ddcf0e294ce69e00f44e3ac4078ccdc8f1f9ea89b8e7e46807abb681c4e23"},
+]
+
+[package.dependencies]
+docxcompose = "*"
+jinja2 = "*"
+lxml = "*"
+python-docx = ">=1.1.1"
+
+[package.extras]
+docs = ["Sphinx", "sphinxcontrib-napoleon"]
+
+[[package]]
 name = "elastic-transport"
 version = "7.16.0"
 description = "Transport classes and utilities shared among Python Elastic client libraries"
@@ -2469,4 +2510,4 @@ test = ["zope.security", "zope.testrunner"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11.6"
-content-hash = "20c429dab2ae04ea7cfa9a8bfbe87f93d376d0e7163e5527ff04e9029d0b85fc"
+content-hash = "4d6117e12337e349bda9dbd66642251bfb36de8b53566b483056c713b3ff83a3"
