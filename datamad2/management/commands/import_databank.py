@@ -21,9 +21,6 @@ from dateutil.parser import parse
 import datetime
 from tqdm import tqdm
 from django.core.exceptions import ObjectDoesNotExist
-import io
-import requests
-from requests.auth import HTTPBasicAuth
 
 # TODO, change SQL query to ORM, after initial check that the script works (M. Paice far more familiar with SQL at this moment in time 30-Oct-2024 so easier to debug with SQL that I know works).
 class Command(BaseCommand):
@@ -34,12 +31,8 @@ class Command(BaseCommand):
         input_group.add_argument('--lookback', help='Time to look back in DataBank to update DataMad')
 
 
-    def temp():
-         ...
-   
     # SQL query to pull information needed by DataMAD, also renames to DataMad names.
-    # TODO, update so that it only pulls from last week unless additional argument is passed
-    # TODO remove limit once it has been checked that it works
+    # TODO, update so that it only pulls from X weeks unless additional argument is passed
     def custom_databank_datamad_sql_query(self):
         # TODO, try and get PI field (LEAD_GRANT) populated in some way
         sql_datamad_renamed = "SELECT \
@@ -88,7 +81,7 @@ class Command(BaseCommand):
                     LEFT OUTER JOIN dim_classification_area \
                             ON fact_application.PrimaryClassificationAreaSKey = dim_classification_area.ClassificationAreaSKey \
                     WHERE fact_application.AdministratingCouncil = 'NERC' AND fact_application.ApplicationStatus = 'ACCEPTED' \
-                    LIMIT 200"
+                    "
         return sql_datamad_renamed
     
 
@@ -151,6 +144,7 @@ class Command(BaseCommand):
         # fact_application_team contains additional (non-duplicate) information which is not needed by DataMad)
         df = df.sort_values(by=['LEAD_GRANT'], ascending=False)
         df = df.drop_duplicates(subset=df.columns.difference(['LEAD_GRANT']), keep='first')
+
 
         # Create mapping to go from renamed DataBank fields to CEDA DataMad database
         mapping = {
