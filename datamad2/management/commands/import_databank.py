@@ -80,7 +80,7 @@ class Command(BaseCommand):
                             ON fact_application.ApplicationSKey = dim_application_ext.ApplicationSKey \
                     LEFT OUTER JOIN dim_classification_area \
                             ON fact_application.PrimaryClassificationAreaSKey = dim_classification_area.ClassificationAreaSKey \
-                    WHERE fact_application.AdministratingCouncil = 'NERC' AND fact_application.ApplicationStatus = 'ACCEPTED' \
+                    WHERE fact_application.AdministratingCouncil = 'NERC' AND fact_application.ApplicationStatus = 'ACCEPTED' OR  fact_application.ApplicationStatus = 'ACTIVE'\
                     "
         return sql_datamad_renamed
     
@@ -144,6 +144,8 @@ class Command(BaseCommand):
         # fact_application_team contains additional (non-duplicate) information which is not needed by DataMad)
         df = df.sort_values(by=['LEAD_GRANT'], ascending=False)
         df = df.drop_duplicates(subset=df.columns.difference(['LEAD_GRANT']), keep='first')
+
+        df.to_csv("temp_new.csv")
 
 
         # Create mapping to go from renamed DataBank fields to CEDA DataMad database
