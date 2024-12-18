@@ -126,7 +126,7 @@ DATABASES = {
         'USER': 'django'},
 
     'DataBank': {
-        'ENGINE': "django.db.backends.mysql",
+        'ENGINE': "mysql.connector.python",
         'OPTIONS': {"read_default_file": os.path.join(
             BASE_DIR, 'local_temp/Databank.conf'),
         }
