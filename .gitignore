@@ -28,3 +28,6 @@ Dockerfile_deploy_local
 requirements.txt
 temp.csv
 temp_new.csv
+*.csv
+*.sqlite3
+Dockerfile_debug_new

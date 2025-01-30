@@ -61,3 +61,4 @@ class DatamadFacetedSearchForm(FacetedSearchForm):
             sqs = sqs.filter(visible=True)
 
         return sqs
+    

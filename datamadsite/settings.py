@@ -24,7 +24,7 @@ SECRET_KEY = ''
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = []
 
@@ -113,6 +113,13 @@ DATABASES = {
             BASE_DIR,
             './local_temp/Databank.conf'),
             },
+    'sra_dw': {
+        'ENGINE': "django.db.backends.mysql",
+        'OPTIONS': {"read_default_file": os.path.join(
+            BASE_DIR,
+            './local_temp/sra_dw.conf'),
+            },
+    
     },
 }
 """
@@ -131,7 +138,14 @@ DATABASES = {
             BASE_DIR, 'local_temp/Databank.conf'),
         }
     },
-}
+
+    'sra_dw': {
+        'ENGINE': "django.db.backends.mysql",
+        'OPTIONS': {"read_default_file": os.path.join(
+            BASE_DIR, 'local_temp/sra_dw.conf'),
+        }
+    }
+    }
 """
 
 

@@ -30,12 +30,25 @@ class Command(BaseCommand):
         input_group = parser.add_mutually_exclusive_group()
         input_group.add_argument('--lookback', help='Time to look back in DataBank to update DataMad')
 
+    @staticmethod
+    def hybrid_tfs_siebel_list():
+        hybrid_tfs_siebel = [3256, 3299, 3445, 3674, 3762, 3774, 3793, 3839, 3871, 6840, 7536, 9989, 11522, 
+                            12787, 12879, 13526, 13690, 13833, 14767, 14774, 14868, 14965, 15230, 15269, 
+                            15461, 15552, 15818, 17496, 17898, 18032, 18128, 18263, 18673, 18829, 19183, 
+                            19556, 20783, 20794, 21001, 21767, 22001, 22072, 22161, 22325, 22912, 23040, 
+                            23483, 24008, 24427, 24454, 24642, 24673, 24797, 25236, 25286, 25569, 25771, 
+                            28586, 28722, 28953, 35114, 36319, 36432, 37669, 39101, 39911, 41106]
+        
+        hybrid_tfs_siebel = [str(x) for x in hybrid_tfs_siebel]
+
+        return hybrid_tfs_siebel
+
 
     # SQL query to pull information needed by DataMAD, also renames to DataMad names.
     # TODO, update so that it only pulls from X weeks unless additional argument is passed
     def custom_databank_datamad_sql_query(self):
         # TODO, try and get PI field (LEAD_GRANT) populated in some way
-        sql_datamad_renamed = "SELECT \
+        sql_databank_renamed = "SELECT \
                     fact_application.ApplicationID AS GRANTREFERENCE, \
                     fact_application.ApplicationTitle AS PROJECT_TITLE, \
                     dim_scheme.SchemeName AS SCHEME, \
@@ -80,9 +93,41 @@ class Command(BaseCommand):
                             ON fact_application.ApplicationSKey = dim_application_ext.ApplicationSKey \
                     LEFT OUTER JOIN dim_classification_area \
                             ON fact_application.PrimaryClassificationAreaSKey = dim_classification_area.ClassificationAreaSKey \
-                    WHERE fact_application.AdministratingCouncil = 'NERC' AND fact_application.ApplicationStatus = 'ACCEPTED' OR  fact_application.ApplicationStatus = 'ACTIVE'\
+                    WHERE fact_application.AdministratingCouncil = 'NERC' AND \
+                    CHAR_LENGTH(fact_application.ApplicationID) < 7 AND \
+                    (fact_application.ApplicationStatus = 'ACCEPTED' OR \
+                    fact_application.ApplicationStatus = 'ACTIVE')\
                     "
-        return sql_datamad_renamed
+        return sql_databank_renamed
+    
+    def custom_sra_dw_datamad_sql_query(self, grant_references):
+        # Turn list of grant references into string (grant1, grant2, ...., grantN)
+        gr_str = "('" + "', '".join(grant_references) + "')"
+
+        # Query to retrieve 
+        # mv_ssd_organisation.organisation_city AS CITY, \
+
+        
+        sql_sra_dw_renamed = "SELECT \
+                    mv_application_trans.ApplicationIdentifier AS GRANTREFERENCE, \
+                    mv_application_trans.ApplicationTechnicalSummary AS OBJECTIVES, \
+                    mv_application_trans.CouncilShortName AS NEW_ADMINISTRATING_COUNCIL, \
+                    mv_outcome_facilities.RecordTitle AS FACILITY1, \
+                    mv_outcome_facilities.OutcomeSubtype AS FACILITY2, \
+                    mv_outcome_facilities.Description AS FACILITY3 \
+                    FROM mv_application_trans \
+                    LEFT OUTER JOIN  mv_outcome_facilities \
+                        ON  mv_application_trans.ApplicationIdentifier = mv_outcome_facilities.ApplicationIdentifier \
+                    WHERE mv_application_trans.ApplicationIdentifier in " + gr_str + "AND \
+                    CHAR_LENGTH(mv_application_trans.ApplicationIdentifier) < 7 AND \
+                    mv_application_trans.CouncilShortName = 'NERC' AND \
+                    (mv_application_trans.ApplicationStatus = 'ACCEPTED' \
+                    OR  mv_application_trans.ApplicationStatus = 'ACTIVE') \
+                    "
+        
+        # mv_application_trans.ApplicationIdentifier in (22072, 22001) AND \ + 
+        
+        return sql_sra_dw_renamed
     
 
     def dictfetchall(self, cursor):
@@ -96,17 +141,44 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if options.get('lookback'):
-            sql_command = self.temp()
+            sql_command = self.temp() # TODO, amend SQL query to include date range to look for new/ changed grants, not just the date look back, unsure how, need more info from NERC/ UKRI
         else:
-            # TODO, amend SQL query to include date range to look for new/ changed grants
-            sql_command = self.custom_databank_datamad_sql_query()
+            sql_command_databank = self.custom_databank_datamad_sql_query()
 
         with connections["DataBank"].cursor() as cursor:
-            cursor.execute(sql_command)
+            cursor.execute(sql_command_databank)
             row = self.dictfetchall(cursor)
 
-        # Creation of dataframe with 
-        df = pd.DataFrame(row)
+        # Creation of dataframe with data from SQL query
+        df_databank = pd.DataFrame(row)
+
+        # Extract unique grant references as a list
+        grant_refs = df_databank.GRANTREFERENCE.unique().tolist()
+
+        sql_command_sra_dw = self.custom_sra_dw_datamad_sql_query(grant_references=grant_refs)
+
+        with connections["sra_dw"].cursor() as cursor:
+            cursor.execute(sql_command_sra_dw)
+            row_sra_dw = self.dictfetchall(cursor)
+
+        # Creation of facility dataframe
+        df_sra_dw = pd.DataFrame(row_sra_dw)
+
+        # Merge facility entries
+        df_sra_dw["FACILITY"] = df_sra_dw["FACILITY1"].astype(str) + " " + df_sra_dw["FACILITY2"].astype(str) + " " + df_sra_dw["FACILITY3"].astype(str)
+
+        # Replace "None None None" with empty string "" and delete FACILITY1, FACILITY2 and FACILITY3 columns
+        df_sra_dw['FACILITY'] = df_sra_dw['FACILITY'].str.replace('None None None','')
+        df_sra_dw.drop(columns=['FACILITY1', 'FACILITY2', 'FACILITY3'])
+
+        # Join the two dataframes on grant reference
+        df = pd.merge(df_databank, df_sra_dw, on="GRANTREFERENCE")
+
+        # Delete any Databank application IDs which are part of the hybrid submitted in TFS paid in Siebel, or they will
+        # be double imported.
+        hybrid_list = self.hybrid_tfs_siebel_list()
+
+        df = df[~df.GRANTREFERENCE.isin(hybrid_list)]
 
         # Populate n_cols, columns which have boolean True/False values
         n_cols = ["NCAS", "NCEO", "LEAD_GRANT"]
@@ -114,15 +186,40 @@ class Command(BaseCommand):
 
         # Use TEAM_MEMBER_ROLES to populate LEAD_GRANT and potentially PARENT_GRANT
         df.loc[df.TEAM_MEMBER_ROLE == "Principal Investigator", "LEAD_GRANT"] = "Y" # Change LEAD_GRANT to Y if TEAM_MEMBER_ROLE is PI
-        df = df.drop("TEAM_MEMBER_ROLE", axis=1) # Delete TEAM_MEMBER_ROLE, no longer needed
+        df = df.sort_values(by=['GRANTREFERENCE'])
+
+        # Delete entirely duplicate rows (caused by database query and not calling back information which would have made rows unique)
+        df = df.drop_duplicates()
+
+        # Delete any duplicate name rows caused by people being listed as more than one member role, prioritise PI for now
+        df = df.sort_values(by=['LEAD_GRANT'], ascending=False)
+        df = df.drop_duplicates(subset=(['GRANTREFERENCE', 'GRANT_HOLDER']), keep='first')
+        df = df.sort_values(by=['GRANTREFERENCE'])
+
+        # Look for NCAS, NCEO in RESEARCH_ORG and set to "Y" if found in row, stays as "N" if not.
+        df.loc[df.RESEARCH_ORG == "National Centre for Atmospheric Science", "NCAS"] = "Y"
+        df.loc[df.RESEARCH_ORG == "National Centre for Earth Observation", "NCEO"] = "Y"
 
         # Replace columns missing in DataBank, that were in DataMad to maintain compatibility with DataMad
         no_longer_needed_cols = ['WORK_NUMBER', 'ADDRESS2', 'OVERALL_SCORE', 
                                 'PROPOSED_ST_DT_ORG', 'PROPOSED_END_DT_ORG'] # NaN cols
         df = df.reindex(columns=[*df.columns.tolist(), *no_longer_needed_cols], fill_value=np.nan)
 
-        needed_cols = ['FACILITY', 'PARENT_GRANT', 'OBJECTIVES']
-        df = df.reindex(columns=[*df.columns.tolist(), *needed_cols], fill_value="")
+        # Renumber GRANTREFERENCE for non- LEAD_GRANT so there aren't GRANTREFERENCE DataMad database clashes.
+        # TODO
+        # First deal with case of multiple PIs
+        df.loc[df.LEAD_GRANT == "Y", 'GRANTREFERENCE'] = df.loc[df.LEAD_GRANT == "Y", 'GRANTREFERENCE'] + "_PI"
+
+        # Then the rest
+        df.loc[df.LEAD_GRANT != "Y", 'GRANTREFERENCE'] = df.loc[df.LEAD_GRANT != "Y", 'GRANTREFERENCE'] + "_" + df.loc[df.LEAD_GRANT != "Y", 'TEAM_MEMBER_ROLE']
+
+        # Need to populate PARENT_GRANT with grant number for LEAD_GRANT, where appropriate
+        # TODO, use string matching to find _ in grant names, then select part before _ for PARENT_GRANT
+        df["PARENT_GRANT"] = ""
+        # index = 0
+        # df["PARENT_GRANT"][index] = "some indexing on dataframe to select child grants and the relevant grant"
+
+        df = df.drop("TEAM_MEMBER_ROLE", axis=1) # Delete TEAM_MEMBER_ROLE, no longer needed
 
         # Reorder columns to Siebel order (easier to read for user, not needed for import via Django)
         col_order = ['GRANTREFERENCE', 'PROJECT_TITLE', 'LEAD_GRANT', 'PARENT_GRANT',
@@ -139,14 +236,7 @@ class Command(BaseCommand):
 
         df = df[col_order]
 
-        # Delete rows which are complete complete duplicates, ordering by "LEAD_GRANT" to ensure that any LEAD_GRANT "Y" are kept (happens due to LEAD_GRANT
-        # column because of the database table it was queried from, generally LEAD_GRANT Y has a lot of "N" duplicate rows as 
-        # fact_application_team contains additional (non-duplicate) information which is not needed by DataMad)
-        df = df.sort_values(by=['LEAD_GRANT'], ascending=False)
-        df = df.drop_duplicates(subset=df.columns.difference(['LEAD_GRANT']), keep='first')
-
-        df.to_csv("temp_new.csv")
-
+        df.to_csv("temp_new_latest.csv")
 
         # Create mapping to go from renamed DataBank fields to CEDA DataMad database
         mapping = {

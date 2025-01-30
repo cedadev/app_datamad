@@ -3,7 +3,7 @@ FROM rockylinux:9.3
 WORKDIR /app
 
 # Installing Python in the image
-RUN dnf install python3 -y
+RUN dnf install python3.11 -y
 
 # RUN wget https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tar.xz
 # RUN tar -xf Python-3.10.0.tar.xz
@@ -31,17 +31,21 @@ RUN dnf install gcc -y
 # Install git to clone ceda-elasticsearch-tools into image (cloned in requirements.txt)
 RUN dnf -y install git
 
-COPY requirements.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy the project code into the container
+COPY ./ /app/
+
+RUN pip3 install poetry==1.8.5
+# RUN poetry install
+
+RUN poetry export --format requirements.txt --output requirements.txt --without-hashes --no-interaction
+
+RUN pip3 install -r requirements.txt
 
 # Add sqllite support for existing DataMad data (imported from Siebel via UKCEH)
 RUN dnf install sqlite -y
 
 # TODO needed for debug only
-RUN pip install debugpy
-
-# Copy the project code into the container
-COPY ./ /app/
+RUN pip3 install debugpy
 
 # ENV DJANGO_SUPERUSER_PASSWORD = Password
 # RUN python3 manage.py createsuperuser  --email=test@test.com --first_name=Test --last_name=Person --noinput

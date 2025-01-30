@@ -27,6 +27,7 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic.edit import FormView
 from django.http import FileResponse
 from django.contrib import messages
+from django.core import serializers
 
 # Utility imports
 from jinja2.exceptions import TemplateError as Jinja2TemplateError
@@ -36,6 +37,8 @@ import os
 import operator
 from datetime import datetime
 import io
+import time
+import json
 
 
 @login_required
@@ -273,7 +276,7 @@ class GrantInfoEditView(LoginRequiredMixin, UpdateView):
 class SearchResultsExportView(LoginRequiredMixin, FormView):
     """
     Export
-    """
+    """ 
     form_class = datamad_forms.GrantFieldsExportForm
     template_name = 'datamad2/grant_export_form.html'
     success_url = reverse_lazy('results_export')
@@ -288,7 +291,7 @@ class SearchResultsExportView(LoginRequiredMixin, FormView):
 
         selected_columns = [column for column, value in form.cleaned_data.items() if value]
         verbose_columns = [get_verbose_name(Grant, c, sep='.') for c in selected_columns]
-
+        
         if search_form.is_valid():
             qs = search_form.search()
 
@@ -319,6 +322,110 @@ class SearchResultsExportView(LoginRequiredMixin, FormView):
 
             return response
 
+
+            # Attempts at pulling back relevant Grants and ImportedGrants in less time than 12-20 minutes
+            # Slowdown caused by repeated database queries (7300 with current database contents), need to
+            # do it in one or two and pull back latest from Grant that matches ImportedGrant.
+            # TODO, finish
+            """
+            tic = time.perf_counter()
+            qs = search_form.search()
+            qs = qs.models(Grant, ImportedGrant)
+            qs = qs.load_all()
+
+            data = list(map(lambda x: x.get_stored_fields(), qs))
+            es_col_names = list(data[0].keys())
+            
+            toc = time.perf_counter()
+            print("es query time = " + str(toc - tic))
+
+            # Reorder selected_columns and es_selected_cols into es download order, generate verbose columns
+            # d = {s.split(".")[1]: s for s in selected_columns}
+            # sel_cols_ordered = [d[c] for c in es_col_names if c in d]
+
+            verbose_columns = [get_verbose_name(Grant, c, sep='.') for c in selected_columns]
+
+            # Strip importedgrant. from selected_columns so it matches es index name
+            es_selected_cols = [s.replace('importedgrant.', '') for s in selected_columns]
+
+            # Try Django query sets as Haystack isn't being used properly in the original anyway:
+            djan_qs = ImportedGrant.objects.all().select_related("grant")
+
+            data_djan_qs = serializers.serialize("json", ImportedGrant.objects.select_related("grant").all())
+            json_djan = json.loads(data_djan_qs)
+
+            tic = time.perf_counter()
+            data_djan_qs_ig = serializers.serialize("json", ImportedGrant.objects.all())
+            data_djan_qs_g = serializers.serialize("json", Grant.objects.all())
+
+            test = ImportedGrant.grant.all()[0]
+            temp = Grant.importedgrant_set.all()
+            json_djan_ig = json.loads(data_djan_qs_ig)
+            json_djan_g = json.loads(data_djan_qs_g)
+            toc = time.perf_counter()
+            print("django query time = " + str(toc - tic))
+
+
+            
+
+            with io.StringIO() as stream:
+
+                # Add provenance information
+                stream.write('Provenance:\n')
+                stream.write(f'Search URL, {self.request.build_absolute_uri()}\n')
+
+                # Add column headers
+                stream.write(f'{",".join(verbose_columns)}\n')
+
+                tic = time.perf_counter()
+                for item in qs:
+
+                    grant = item.object
+                    lemon = list(grant)
+
+                    row_temp = operator.attrgetter(*selected_columns)(grant)
+
+                    # Make sure all values are converted to strings
+                    row_temp = [f'"{item}"' for item in row_temp]
+                    line = f'{",".join(row_temp)}\n'
+                    stream.write(line)
+                    
+                toc= time.perf_counter()
+                print("es query time orig with load_all()= " + str(toc - tic))
+
+                missing_cols_new = [x for x in es_selected_cols if x not in es_col_names]
+                missing_cols_old = 
+
+                lime = grant.importedgrant
+                old_query_v2 = list(vars(grant.importedgrant))
+
+                # add in missing "functions" to old_query list
+                old_query.append(["child_grant", "dataproduct_set", "date_added", "digital_data_products",
+                                  "dmp_agreed_date", "document_set", ])
+
+
+                filename = f'datamad_search_results_{datetime.now().strftime("%Y-%m-%dT%H_%M")}.csv'
+                response = HttpResponse(stream.getvalue())
+                response['Content-Type'] = 'text/plain'
+                response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+                for row in data:
+                    # Remove entries not in selected_columns
+                    row_sel_cols = {i:row[i] for i in row if i not in es_selected_cols}
+
+                    # Make sure all values are converted to strings
+                    row = [f'"{item}"' for item in row.values()]
+                    line = f'{",".join(row)}\n'
+                    stream.write(line)      
+
+                filename = f'datamad_search_results_{datetime.now().strftime("%Y-%m-%dT%H_%M")}.csv'
+                response = HttpResponse(stream.getvalue())
+                response['Content-Type'] = 'text/plain'
+                response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+            return response
+        """
+            
         # Add error message if search form validation fails
         error_string = ''
         for field, errors in search_form.errors.items():

@@ -2,7 +2,6 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
-from django.conf import settings
 
 def main():
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'datamadsite.settings')
