@@ -26,6 +26,7 @@ class GrantTable(tables.Table):
         args=[A('pk')],
         verbose_name='Grant Reference'
     )
+
     labels = tables.TemplateColumn(
         template_name='datamad2/fields/top_categories_field.html'
     )
@@ -68,12 +69,14 @@ class GrantTable(tables.Table):
             }
         }
         fields = (
+            'importedgrant__nerc_id',
             'importedgrant__grant_holder',
             'importedgrant__call',
         )
         sequence = (
             'visibility',
             'grant_ref',
+            'importedgrant__nerc_id',
             'grant_title',
             'importedgrant__grant_holder',
             'importedgrant__call',

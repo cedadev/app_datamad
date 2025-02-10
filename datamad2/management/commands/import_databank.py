@@ -50,6 +50,7 @@ class Command(BaseCommand):
         # TODO, try and get PI field (LEAD_GRANT) populated in some way
         sql_databank_renamed = "SELECT \
                     fact_application.ApplicationID AS GRANTREFERENCE, \
+                    fact_application.FinanceAwardID AS NERC_ID, \
                     fact_application.ApplicationTitle AS PROJECT_TITLE, \
                     dim_scheme.SchemeName AS SCHEME, \
                     dim_opportunity.OpportunityName AS 'CALL', \
@@ -176,77 +177,107 @@ class Command(BaseCommand):
 
         # Delete any Databank application IDs which are part of the hybrid submitted in TFS paid in Siebel, or they will
         # be double imported.
-        hybrid_list = self.hybrid_tfs_siebel_list()
+        # hybrid_list = self.hybrid_tfs_siebel_list()  # TODO, remember to uncomment!!!!
+        # df = df[~df.GRANTREFERENCE.isin(hybrid_list)] # TODO, remember to uncomment!!!!
 
-        df = df[~df.GRANTREFERENCE.isin(hybrid_list)]
+        # Clean up NERC IDs so they don't have "UKRI" prefix if the string contains NE/
+        df['NERC_ID'] = df['NERC_ID'].str.replace('UKRI/NE/', 'NE/')
 
         # Populate n_cols, columns which have boolean True/False values
         n_cols = ["NCAS", "NCEO", "LEAD_GRANT"]
-        df = df.reindex(columns=[*df.columns.tolist(), *n_cols], fill_value='N')
+        df = df.reindex(columns=[*df.columns.tolist(), *n_cols], fill_value=0)
 
         # Use TEAM_MEMBER_ROLES to populate LEAD_GRANT and potentially PARENT_GRANT
-        df.loc[df.TEAM_MEMBER_ROLE == "Principal Investigator", "LEAD_GRANT"] = "Y" # Change LEAD_GRANT to Y if TEAM_MEMBER_ROLE is PI
+        df.loc[df.TEAM_MEMBER_ROLE == "Principal Investigator", "LEAD_GRANT"] = 1 # Change LEAD_GRANT to Y if TEAM_MEMBER_ROLE is PI
         df = df.sort_values(by=['GRANTREFERENCE'])
 
         # Delete entirely duplicate rows (caused by database query and not calling back information which would have made rows unique)
-        df = df.drop_duplicates()
+        df = df.drop_duplicates()  
 
         # Delete any duplicate name rows caused by people being listed as more than one member role, prioritise PI for now
+        # TODO, remember to uncomment!!!!
+        """
         df = df.sort_values(by=['LEAD_GRANT'], ascending=False)
         df = df.drop_duplicates(subset=(['GRANTREFERENCE', 'GRANT_HOLDER']), keep='first')
-        df = df.sort_values(by=['GRANTREFERENCE'])
+        """
 
         # Look for NCAS, NCEO in RESEARCH_ORG and set to "Y" if found in row, stays as "N" if not.
-        df.loc[df.RESEARCH_ORG == "National Centre for Atmospheric Science", "NCAS"] = "Y"
-        df.loc[df.RESEARCH_ORG == "National Centre for Earth Observation", "NCEO"] = "Y"
+        df.loc[df.RESEARCH_ORG == "National Centre for Atmospheric Science", "NCAS"] = 1
+        df.loc[df.RESEARCH_ORG == "National Centre for Earth Observation", "NCEO"] = 1
 
-        # Replace columns missing in DataBank, that were in DataMad to maintain compatibility with DataMad
-        no_longer_needed_cols = ['WORK_NUMBER', 'ADDRESS2', 'OVERALL_SCORE', 
-                                'PROPOSED_ST_DT_ORG', 'PROPOSED_END_DT_ORG'] # NaN cols
-        df = df.reindex(columns=[*df.columns.tolist(), *no_longer_needed_cols], fill_value=np.nan)
+        # Renumber GRANTREFERENCE for non- LEAD_GRANT so there aren't GRANTREFERENCE DataMad database clashes. Leave the PI grant as the "parent" grant with no suffix
+        # Identify PIs (in case of multiple label the first one), if no PI then they are labelled in order of preference:
+        # Grant-Manager, CI, Project-Lead, Project-Co-Lead-UK, etc unspecified and unknown last.
+        
+        tmr_unique = df["TEAM_MEMBER_ROLE"].unique().tolist()
+        tmr_known_in_pref_order = ['Principal Investigator', 'Co Investigator', 'Researcher Co Investigator', 'Project lead', 'Project co-lead (UK)', 
+                                   'Grant manager', 'Fellow', 'Researcher co-lead','Researcher', 'Specialist', 'Research and innovation associate', 
+                                   'Technician', 'Professional enabling staff', 'Unspecified']
+        
+        special_order = {u: i for i, u in enumerate(reversed(tmr_known_in_pref_order), 1)}
+        tmr_unique.sort(key=lambda s: special_order.get(s, 0), reverse=True)
 
-        # Renumber GRANTREFERENCE for non- LEAD_GRANT so there aren't GRANTREFERENCE DataMad database clashes.
-        # TODO
-        # First deal with case of multiple PIs
-        df.loc[df.LEAD_GRANT == "Y", 'GRANTREFERENCE'] = df.loc[df.LEAD_GRANT == "Y", 'GRANTREFERENCE'] + "_PI"
+        # Create categorial in order given above
+        df["tmr_mapping_cat"] = pd.Categorical(df['TEAM_MEMBER_ROLE'], tmr_unique, )
 
-        # Then the rest
-        df.loc[df.LEAD_GRANT != "Y", 'GRANTREFERENCE'] = df.loc[df.LEAD_GRANT != "Y", 'GRANTREFERENCE'] + "_" + df.loc[df.LEAD_GRANT != "Y", 'TEAM_MEMBER_ROLE']
+        # Sort values by GRANTREFERENCE and tmr_mapping with its categorical order given above
+        df = df.sort_values(by=['GRANTREFERENCE', 'tmr_mapping_cat'])
+        df["PI_FLAG"] = df.groupby(['GRANTREFERENCE']).cumcount() + 1
+
+        # Label non PI grants with tmr_mapping suffix
+        df.loc[(df.PI_FLAG != 1) & (df.LEAD_GRANT != 1), 'GRANTREFERENCE'] = df.loc[(df.PI_FLAG != 1) & (df.LEAD_GRANT != 1), 'GRANTREFERENCE'] + "_" + df.loc[(df.PI_FLAG != 1) & (df.LEAD_GRANT != "Y"), 'TEAM_MEMBER_ROLE']
+
+        # Label grants with more than one PI with "PI_additional" suffix
+        df.loc[(df.PI_FLAG != 1) & (df.LEAD_GRANT == 1), 'GRANTREFERENCE'] = df.loc[(df.PI_FLAG != 1) & (df.LEAD_GRANT == 1), 'GRANTREFERENCE'] + "_PI-additional"
+
+        # Now set "LEAD_GRANT" "Y" to match PI_FLAG==1, set everything else to N
+        df.loc[(df.PI_FLAG == 1), 'LEAD_GRANT'] = 1
+        df.loc[(df.PI_FLAG != 1), 'LEAD_GRANT'] = 0
+        
+        # Create hide record, set all but LEAD_GRANT to hidden "1" status
+        df["HIDE_RECORD"] = 1
+        df.loc[(df.PI_FLAG == 1), 'HIDE_RECORD'] = 0
 
         # Need to populate PARENT_GRANT with grant number for LEAD_GRANT, where appropriate
         # TODO, use string matching to find _ in grant names, then select part before _ for PARENT_GRANT
-        df["PARENT_GRANT"] = ""
-        # index = 0
-        # df["PARENT_GRANT"][index] = "some indexing on dataframe to select child grants and the relevant grant"
+        df["PARENT_GRANT"] = df['GRANTREFERENCE'].str.findall('^.+?(?=_)').str.join(", ")
 
-        df = df.drop("TEAM_MEMBER_ROLE", axis=1) # Delete TEAM_MEMBER_ROLE, no longer needed
+        df = df.drop(["TEAM_MEMBER_ROLE", "tmr_mapping_cat", "PI_FLAG"], axis=1) # Delete TEAM_MEMBER_ROLE, no longer needed
 
-        # Reorder columns to Siebel order (easier to read for user, not needed for import via Django)
-        col_order = ['GRANTREFERENCE', 'PROJECT_TITLE', 'LEAD_GRANT', 'PARENT_GRANT',
+        # Reorder columns to Siebel order (easier to read for user when debugging, not needed for import via Django)
+        col_order = ['GRANTREFERENCE', 'NERC_ID', 'PROJECT_TITLE', 'LEAD_GRANT', 'PARENT_GRANT',
                         'SCHEME', 'CALL', 'GRANT_TYPE',
-                        'GRANT_HOLDER', 'WORK_NUMBER', 'EMAIL', 'RESEARCH_ORG',
+                        'GRANT_HOLDER', 'EMAIL', 'RESEARCH_ORG',
                         'DEPARTMENT', 'ACTUAL_START_DATE', 'ACTUAL_END_DATE',
                         'NCAS', 'NCEO', 'PROPOSED_ST_DT', 'PROPOSED_END_DT',
-                        'GRANT_STATUS', 'ADDRESS1', 'ADDRESS2', 'CITY',
+                        'GRANT_STATUS', 'ADDRESS1', 'CITY',
                         'POSTCODE', 'AMOUNT',
                         'ROUTING_CLASSIFICATION', 'SCIENCE_AREA',
                         'GEOGRAPHIC_AREA', 'SECONDARY_CLASSIFICATION',
-                        'ABSTRACT', 'OBJECTIVES', 'FACILITY', 'OVERALL_SCORE',
-                        'PROPOSED_ST_DT_ORG', 'PROPOSED_END_DT_ORG']
+                        'ABSTRACT', 'OBJECTIVES', 'FACILITY', 'HIDE_RECORD']
 
         df = df[col_order]
 
-        df.to_csv("temp_new_latest.csv")
+        # Ensure types are correct on bool and datetime fields
+        df["LEAD_GRANT"] = df["LEAD_GRANT"].astype("bool")
+        df["HIDE_RECORD"] = df["HIDE_RECORD"].astype("bool")
+        df["NCEO"] = df["NCEO"].astype("bool")
+        df["NCAS"] = df["NCAS"].astype("bool")
 
+        # df['PROPOSED_ST_DT'] = pd.to_datetime(df['PROPOSED_ST_DT'])
+        # df['PROPOSED_END_DT'] = pd.to_datetime(df['PROPOSED_END_DT'])
+        # df['ACTUAL_START_DATE'] = pd.to_datetime(df['ACTUAL_START_DATE'])
+        # df['ACTUAL_END_DATE'] = pd.to_datetime(df['ACTUAL_END_DATE'])
+ 
         # Create mapping to go from renamed DataBank fields to CEDA DataMad database
         mapping = {
                 'GRANTREFERENCE': 'grant_ref',
+                'NERC_ID': 'nerc_id',
                 'PROJECT_TITLE': 'title',
                 'SCHEME': 'scheme',
                 'CALL': 'call',
                 'GRANT_TYPE': 'grant_type',
                 'GRANT_HOLDER': 'grant_holder',
-                'WORK_NUMBER': 'work_number',
                 'EMAIL': 'email',
                 'RESEARCH_ORG': 'research_org',
                 'DEPARTMENT': 'department',
@@ -258,7 +289,6 @@ class Command(BaseCommand):
                 'PROPOSED_END_DT': 'proposed_end_date',
                 'GRANT_STATUS': 'grant_status',
                 'ADDRESS1': 'address1',
-                'ADDRESS2': 'address2',
                 'CITY': 'city',
                 'POSTCODE': 'post_code',
                 'LEAD_GRANT': 'lead_grant',
@@ -269,11 +299,9 @@ class Command(BaseCommand):
                 'ABSTRACT': 'abstract',
                 'OBJECTIVES': 'objectives',
                 'FACILITY': 'facility',
-                'OVERALL_SCORE': 'overall_score'
+                'HIDE_RECORD': 'hide_record'
                 }
         
-
-
         # Checks on incoming data
         for row in tqdm(df.itertuples(), desc='Importing grants'):
             data = {}
@@ -291,30 +319,19 @@ class Command(BaseCommand):
                         if not isinstance(value, str) and math.isnan(value):
                                 continue
 
-                if source_field in ('LEAD_GRANT', 'NCAS', 'NCEO'):
-                    # Turn into boolean
-                    value = bool('y' in value.lower())
-
                 elif source_field in ('PROPOSED_ST_DT', 'PROPOSED_END_DT', 'ACTUAL_START_DATE', 'ACTUAL_END_DATE'):
                     # Ensure the date is converted correctly (although DataBank should always give datetime fields for the above)
                     if not isinstance(value, datetime.date):
                         value = parse(value, default=None).date()
 
-                # Add to the data dict
-                data[model_field] = value
+                if source_field not in "HIDE_RECORD":
+                    # Add to the data dict
+                    data[model_field] = value
 
             ig = ImportedGrant(**data)
 
             # Generate list of fields to check. These fields come from grant import
             model_fields = [model_field for source_field, model_field in mapping.items()]
-
-            # TODO For now remove the fields below from model_fields
-            # Otherwise the correct values previously imported from Siebel via UKCEH will be overwritten by default
-            # NaNs/ ""/ "N" values written for DataBank import
-            do_not_check = ["ncas", "nceo", "lead_grant", 'work_number', 'address2', 'overall_score', 
-                            'proposed_st_dt_org', 'proposed_end_dt_org', 'facility', 'parent_grant', 'objectives']
-            model_fields = [e for e in model_fields if e not in do_not_check]
-
             grant_ref = row.GRANTREFERENCE
 
             try:
@@ -335,6 +352,7 @@ class Command(BaseCommand):
 
         # Attach parent child relationships
         for row in tqdm(df.itertuples(), desc='Making parent child connections'):
+            hide_record = row.HIDE_RECORD
             parent_grant = row.PARENT_GRANT
             row_grant = row.GRANTREFERENCE
 
@@ -352,5 +370,9 @@ class Command(BaseCommand):
             grant = Grant.objects.filter(grant_ref=row_grant).first()
 
             if pg and grant:
+                grant.hide_record = hide_record
                 grant.parent_grant = pg
-                grant.save()
+            else:
+                grant.hide_record = hide_record
+
+            grant.save()

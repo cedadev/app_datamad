@@ -193,6 +193,8 @@ class ImportedGrant(models.Model):
     title = models.CharField(max_length=1024, default='')
     # Grant Reference	Siebel	Unique identifier for the grant			GRANTREFERENCE
     grant_ref = models.CharField(max_length=50, default='', blank=True)
+    # New UKRI Databank reference
+    nerc_id = models.CharField(max_length=20, default='', blank=True)
     # grant to imported grant relationship
     grant = models.ForeignKey(to=Grant, on_delete=models.PROTECT, null=True, blank=True)
     # Grant Status	Siebel	Active/Closed			GRANT_STATUS
