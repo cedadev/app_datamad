@@ -95,7 +95,8 @@ class Command(BaseCommand):
                     WHERE fact_application.AdministratingCouncil = 'NERC' AND \
                     CHAR_LENGTH(fact_application.ApplicationID) < 7 AND \
                     (fact_application.ApplicationStatus = 'ACCEPTED' OR \
-                    fact_application.ApplicationStatus = 'ACTIVE')\
+                    fact_application.ApplicationStatus = 'ACTIVE' OR \
+                    fact_application.ApplicationStatus = 'CLOSED')\
                     "
         return sql_databank_renamed
     
@@ -121,7 +122,8 @@ class Command(BaseCommand):
                     CHAR_LENGTH(mv_application_trans.ApplicationIdentifier) < 7 AND \
                     mv_application_trans.CouncilShortName = 'NERC' AND \
                     (mv_application_trans.ApplicationStatus = 'ACCEPTED' \
-                    OR  mv_application_trans.ApplicationStatus = 'ACTIVE') \
+                    OR  mv_application_trans.ApplicationStatus = 'ACTIVE' \
+                    OR mv_application_trans.ApplicationStatus = 'CLOSED') \
                     "
         
         # mv_application_trans.ApplicationIdentifier in (22072, 22001) AND \ + 
