@@ -26,8 +26,8 @@ from jfu.http import upload_receive, UploadResponse, JFUResponse
 # Python imports
 import re
 
-DOCUMENT_NAMING_PATTERN = re.compile("^(?P<grant_ref>\w*_\w*_\d*)_(?P<doc_type>\w*)(?P<extension>\.\w*)$")
-
+DOCUMENT_NAMING_PATTERN_SIEBEL = re.compile(r"^(?P<grant_ref>\w*_\w*_\d*)_(?P<doc_type>\w*)(?P<extension>\.\w*)$")
+DOCUMENT_NAMING_PATTERN_DATABANK = re.compile(r"^(?P<grant_ref>\d{5})_(?P<doc_type>\w*)(?P<extension>\.\w*)$")
 
 class FormatError(Exception):
     pass
@@ -47,9 +47,13 @@ def multiple_document_upload(request):
         name = str(file)
 
         try:
-            m = DOCUMENT_NAMING_PATTERN.match(name)
-            if not m:
-                raise FormatError(f"File name does not match convention. e.g NE_G0123X_1_DMP.docx")
+            m = DOCUMENT_NAMING_PATTERN_SIEBEL.match(name)
+            if not m:  # Check document naming pattern against new UKRI convention, accept both, for now.
+                m = DOCUMENT_NAMING_PATTERN_DATABANK.match(name)
+                if not m:
+                    raise FormatError(f"File name does not match convention. e.g NE_G0123X_1_DMP.docx")
+                else:
+                    raise FormatError(f"File name does not match convention. e.g 12345_DMP.docx")
 
             grant_ref = m.group('grant_ref').replace('_', '/')
 
@@ -113,9 +117,12 @@ def document_upload(request, pk):
             name = str(request.FILES.get('upload'))
             try:
                 # Check basic name format
-                m = DOCUMENT_NAMING_PATTERN.match(name)
+                m = DOCUMENT_NAMING_PATTERN_SIEBEL.match(name)
+                
                 if not m:
-                    raise FormatError(f"File name {name} is not formatted correctly")
+                    m = DOCUMENT_NAMING_PATTERN_DATABANK.match(name)
+                    if not m:
+                        raise FormatError(f"File name {name} is not formatted correctly")
 
                 # Check grant ref against grant you are trying to upload against
                 grant_ref = (m.group('grant_ref')).replace('_', '/')

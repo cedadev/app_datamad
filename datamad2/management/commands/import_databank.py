@@ -45,9 +45,7 @@ class Command(BaseCommand):
 
 
     # SQL query to pull information needed by DataMAD, also renames to DataMad names.
-    # TODO, update so that it only pulls from X weeks unless additional argument is passed
     def custom_databank_datamad_sql_query(self):
-        # TODO, try and get PI field (LEAD_GRANT) populated in some way
         sql_databank_renamed = "SELECT \
                     fact_application.ApplicationID AS GRANTREFERENCE, \
                     fact_application.FinanceAwardID AS NERC_ID, \
@@ -175,10 +173,12 @@ class Command(BaseCommand):
         # Join the two dataframes on grant reference
         df = pd.merge(df_databank, df_sra_dw, on="GRANTREFERENCE")
 
+        df.to_csv("Finding_MACC.csv")
+
         # Delete any Databank application IDs which are part of the hybrid submitted in TFS paid in Siebel, or they will
         # be double imported.
-        # hybrid_list = self.hybrid_tfs_siebel_list()  # TODO, remember to uncomment!!!!
-        # df = df[~df.GRANTREFERENCE.isin(hybrid_list)] # TODO, remember to uncomment!!!!
+        hybrid_list = self.hybrid_tfs_siebel_list()
+        df = df[~df.GRANTREFERENCE.isin(hybrid_list)]
 
         # Clean up NERC IDs so they don't have "UKRI" prefix if the string contains NE/
         df['NERC_ID'] = df['NERC_ID'].str.replace('UKRI/NE/', 'NE/')
@@ -195,11 +195,8 @@ class Command(BaseCommand):
         df = df.drop_duplicates()  
 
         # Delete any duplicate name rows caused by people being listed as more than one member role, prioritise PI for now
-        # TODO, remember to uncomment!!!!
-        """
         df = df.sort_values(by=['LEAD_GRANT'], ascending=False)
         df = df.drop_duplicates(subset=(['GRANTREFERENCE', 'GRANT_HOLDER']), keep='first')
-        """
 
         # Look for NCAS, NCEO in RESEARCH_ORG and set to "Y" if found in row, stays as "N" if not.
         df.loc[df.RESEARCH_ORG == "National Centre for Atmospheric Science", "NCAS"] = 1
@@ -239,7 +236,6 @@ class Command(BaseCommand):
         df.loc[(df.PI_FLAG == 1), 'HIDE_RECORD'] = 0
 
         # Need to populate PARENT_GRANT with grant number for LEAD_GRANT, where appropriate
-        # TODO, use string matching to find _ in grant names, then select part before _ for PARENT_GRANT
         df["PARENT_GRANT"] = df['GRANTREFERENCE'].str.findall('^.+?(?=_)').str.join(", ")
 
         df = df.drop(["TEAM_MEMBER_ROLE", "tmr_mapping_cat", "PI_FLAG"], axis=1) # Delete TEAM_MEMBER_ROLE, no longer needed

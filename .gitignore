@@ -31,3 +31,4 @@ temp_new.csv
 *.csv
 *.sqlite3
 Dockerfile_debug_new
+MACC_only.xlsx
