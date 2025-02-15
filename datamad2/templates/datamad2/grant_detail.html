@@ -32,6 +32,10 @@
                         <td> {{ imported_grant.nerc_id }} </td>
                     </tr>
                     <tr>
+                        <th>UKRI ID</th>
+                        <td> {{ imported_grant.ukri_id }} </td>
+                    </tr>
+                    <tr>
                         <th>Date Added</th>
                         <td>{{ imported_grant.grant.date_added|default_if_none:"N/A"|date:"d M Y" }} </td>
                     </tr>

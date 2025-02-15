@@ -43,11 +43,11 @@ class Command(BaseCommand):
 
         return hybrid_tfs_siebel
 
-
     # SQL query to pull information needed by DataMAD, also renames to DataMad names.
     def custom_databank_datamad_sql_query(self):
-        sql_databank_renamed = "SELECT \
+        sql_databank = "SELECT \
                     fact_application.ApplicationID AS GRANTREFERENCE, \
+                    fact_application.ApplicationID AS UKRI_ID, \
                     fact_application.FinanceAwardID AS NERC_ID, \
                     fact_application.ApplicationTitle AS PROJECT_TITLE, \
                     dim_scheme.SchemeName AS SCHEME, \
@@ -81,13 +81,13 @@ class Command(BaseCommand):
                     LEFT OUTER JOIN dim_opportunity \
                             ON fact_application.OpportunitySKey = dim_opportunity.OpportunitySKey \
                     LEFT OUTER JOIN dim_person \
-                            ON fact_application.ApplicantPersonSKey = dim_person.PersonSKey \
+                            ON fact_application_team.TeamMemberPersonSKey = dim_person.PersonSKey \
                     LEFT OUTER JOIN dim_department \
                             ON fact_application.OrganisationDepartmentSKey = dim_department.OrganisationDepartmentSKey \
                     LEFT OUTER JOIN dim_application_date  \
                             ON fact_application.ApplicationSKey = dim_application_date.ApplicationSKey \
                     LEFT OUTER JOIN  dim_organisation\
-                            ON fact_application.LeadOrganisationSKey = dim_organisation.OrganisationSKey \
+                            ON fact_application_team.TeamMemberOrganisationSKey = dim_organisation.OrganisationSKey \
                     LEFT OUTER JOIN  dim_application_ext\
                             ON fact_application.ApplicationSKey = dim_application_ext.ApplicationSKey \
                     LEFT OUTER JOIN dim_classification_area \
@@ -98,17 +98,14 @@ class Command(BaseCommand):
                     fact_application.ApplicationStatus = 'ACTIVE' OR \
                     fact_application.ApplicationStatus = 'CLOSED')\
                     "
-        return sql_databank_renamed
+        return sql_databank
     
     def custom_sra_dw_datamad_sql_query(self, grant_references):
         # Turn list of grant references into string (grant1, grant2, ...., grantN)
         gr_str = "('" + "', '".join(grant_references) + "')"
 
-        # Query to retrieve 
-        # mv_ssd_organisation.organisation_city AS CITY, \
-
-        
-        sql_sra_dw_renamed = "SELECT \
+        # Query to retrieve facility        
+        sql_sra_dw = "SELECT \
                     mv_application_trans.ApplicationIdentifier AS GRANTREFERENCE, \
                     mv_application_trans.ApplicationTechnicalSummary AS OBJECTIVES, \
                     mv_application_trans.CouncilShortName AS NEW_ADMINISTRATING_COUNCIL, \
@@ -125,12 +122,9 @@ class Command(BaseCommand):
                     OR  mv_application_trans.ApplicationStatus = 'ACTIVE' \
                     OR mv_application_trans.ApplicationStatus = 'CLOSED') \
                     "
-        
-        # mv_application_trans.ApplicationIdentifier in (22072, 22001) AND \ + 
-        
-        return sql_sra_dw_renamed
+         
+        return sql_sra_dw
     
-
     def dictfetchall(self, cursor):
         "Return all rows from a cursor as a dict"
         columns = [col[0] for col in cursor.description]
@@ -138,7 +132,67 @@ class Command(BaseCommand):
                 dict(zip(columns, row))
                 for row in cursor.fetchall()
         ]
+    
+    @staticmethod
+    def merge_facility(df_sra_dw):
+        df_sra_dw["FACILITY"] = df_sra_dw["FACILITY1"].astype(str) + " " + df_sra_dw["FACILITY2"].astype(str) + " " + df_sra_dw["FACILITY3"].astype(str)
 
+        # Replace "None None None" with empty string "" and delete FACILITY1, FACILITY2 and FACILITY3 AND NEW_ADMINISTRATING_COUNCIL columns
+        df_sra_dw['FACILITY'] = df_sra_dw['FACILITY'].str.replace('None None None','')
+        df_sra_dw = df_sra_dw.drop(columns=['FACILITY1', 'FACILITY2', 'FACILITY3', 'NEW_ADMINISTRATING_COUNCIL'])
+
+        return df_sra_dw
+    
+    def define_lead_grant_priority(self, df):
+        grant_pref_order= ['Principal Investigator', 'Project lead', 'Grant manager', 'Project co-lead (UK)',
+                                   'Co Investigator', 'Researcher Co Investigator',
+                                   'Fellow', 'Researcher co-lead','Researcher', 'Specialist',
+                                   'Research and innovation associate', 
+                                   'Technician', 'Professional enabling staff', 'Unspecified']
+        
+        tmr_unique = df["TEAM_MEMBER_ROLE"].unique().tolist()
+
+        # Ensure any grants not in grant preference order list are counted, at the end        
+        special_order = {u: i for i, u in enumerate(reversed(grant_pref_order), 1)}
+        tmr_unique.sort(key=lambda s: special_order.get(s, 0), reverse=True)
+
+        grant_pref_order_final = tmr_unique
+
+        self.grant_pref_order = grant_pref_order_final
+
+    def populate_ncas_nceo_leadgrant_sort_column(self, n_cols, df):
+        df = df.reindex(columns=[*df.columns.tolist(), *n_cols], fill_value=0)
+
+        sort_dict = {str(key): idx for idx, key in enumerate(self.grant_pref_order)}
+
+        # Use TEAM_MEMBER_ROLES to populate LEAD_GRANT in order of grant_pref_order (PI first, then others)
+        df['sort_column'] = df.TEAM_MEMBER_ROLE.map(sort_dict)
+        df = df.sort_values(by=['GRANTREFERENCE', 'sort_column'])
+
+        df["cumu_count"] = df.groupby(['GRANTREFERENCE']).cumcount()        
+        df.loc[(df["cumu_count"] == 0), "LEAD_GRANT"] = 1
+
+        # Look for NCAS, NCEO in RESEARCH_ORG and set to "Y" if found in row, stays as "N" if not.
+        df.loc[df.RESEARCH_ORG == "National Centre for Atmospheric Science", "NCAS"] = 1
+        df.loc[df.RESEARCH_ORG == "National Centre for Earth Observation", "NCEO"] = 1
+
+        return df
+    
+    @staticmethod
+    def rename_grant_ref(df):
+        # Sort values by GRANTREFERENCE and tmr_mapping with its categorical order given above
+        df = df.sort_values(by=['GRANTREFERENCE', 'sort_column'])
+        df["ROLE_FLAG"] = df.groupby(['GRANTREFERENCE', "sort_column"]).cumcount() + 1
+        df["ROLE_FLAG"] = df["ROLE_FLAG"].astype(str)
+
+        # Label non lead grant holders with ROLE_FLAG suffix
+        df.loc[(df.LEAD_GRANT != 1), 'GRANTREFERENCE'] = df.loc[(df.LEAD_GRANT != 1), 'GRANTREFERENCE'] + \
+                                                                             "_" + df.loc[(df.LEAD_GRANT != 1), 'TEAM_MEMBER_ROLE'] + \
+                                                                             "_" + df.loc[(df.LEAD_GRANT != 1), 'ROLE_FLAG']
+
+        df = df.sort_values(by=['GRANTREFERENCE'])
+    
+        return df
 
     def handle(self, *args, **options):
         if options.get('lookback'):
@@ -166,95 +220,42 @@ class Command(BaseCommand):
         df_sra_dw = pd.DataFrame(row_sra_dw)
 
         # Merge facility entries
-        df_sra_dw["FACILITY"] = df_sra_dw["FACILITY1"].astype(str) + " " + df_sra_dw["FACILITY2"].astype(str) + " " + df_sra_dw["FACILITY3"].astype(str)
-
-        # Replace "None None None" with empty string "" and delete FACILITY1, FACILITY2 and FACILITY3 columns
-        df_sra_dw['FACILITY'] = df_sra_dw['FACILITY'].str.replace('None None None','')
-        df_sra_dw.drop(columns=['FACILITY1', 'FACILITY2', 'FACILITY3'])
+        df_sra_dw = self.merge_facility(df_sra_dw)
 
         # Join the two dataframes on grant reference
         df = pd.merge(df_databank, df_sra_dw, on="GRANTREFERENCE")
 
-        df.to_csv("Finding_MACC.csv")
+        # Define lead grant preference order (PI first)
+        self.define_lead_grant_priority(df)
 
-        # Delete any Databank application IDs which are part of the hybrid submitted in TFS paid in Siebel, or they will
-        # be double imported.
-        hybrid_list = self.hybrid_tfs_siebel_list()
-        df = df[~df.GRANTREFERENCE.isin(hybrid_list)]
+        # Populate n_cols (currently NCAS, NCEO and LEAD_GRANT), columns which have boolean True/False values
+        n_cols = ["NCAS", "NCEO", "LEAD_GRANT"]
+        df = self.populate_ncas_nceo_leadgrant_sort_column(n_cols, df)
+
+        # Delete any duplicate name rows caused by people being listed as more than one member role, prioritise keeping PI
+        df = df.sort_values(by=['LEAD_GRANT'], ascending=False)
+        df = df.drop_duplicates(subset=(['GRANTREFERENCE', 'GRANT_HOLDER', 'TEAM_MEMBER_ROLE', 'EMAIL']), keep='first')
 
         # Clean up NERC IDs so they don't have "UKRI" prefix if the string contains NE/
         df['NERC_ID'] = df['NERC_ID'].str.replace('UKRI/NE/', 'NE/')
 
-        # Populate n_cols, columns which have boolean True/False values
-        n_cols = ["NCAS", "NCEO", "LEAD_GRANT"]
-        df = df.reindex(columns=[*df.columns.tolist(), *n_cols], fill_value=0)
+        # Rename any Databank application IDs to their NERC_IDs if they are part of the 
+        # hybrid grants which were submitted in TFS and paid in Siebel.
+        # Otherwise they will be double imported under the new UKRI grant ID and the old NERC ID.
+        hybrid_list = self.hybrid_tfs_siebel_list()
+        df.loc[df.GRANTREFERENCE.isin(hybrid_list), "GRANTREFERENCE"] = df[df.GRANTREFERENCE.isin(hybrid_list)]["NERC_ID"]
 
-        # Use TEAM_MEMBER_ROLES to populate LEAD_GRANT and potentially PARENT_GRANT
-        df.loc[df.TEAM_MEMBER_ROLE == "Principal Investigator", "LEAD_GRANT"] = 1 # Change LEAD_GRANT to Y if TEAM_MEMBER_ROLE is PI
-        df = df.sort_values(by=['GRANTREFERENCE'])
-
-        # Delete entirely duplicate rows (caused by database query and not calling back information which would have made rows unique)
-        df = df.drop_duplicates()  
-
-        # Delete any duplicate name rows caused by people being listed as more than one member role, prioritise PI for now
-        df = df.sort_values(by=['LEAD_GRANT'], ascending=False)
-        df = df.drop_duplicates(subset=(['GRANTREFERENCE', 'GRANT_HOLDER']), keep='first')
-
-        # Look for NCAS, NCEO in RESEARCH_ORG and set to "Y" if found in row, stays as "N" if not.
-        df.loc[df.RESEARCH_ORG == "National Centre for Atmospheric Science", "NCAS"] = 1
-        df.loc[df.RESEARCH_ORG == "National Centre for Earth Observation", "NCEO"] = 1
-
-        # Renumber GRANTREFERENCE for non- LEAD_GRANT so there aren't GRANTREFERENCE DataMad database clashes. Leave the PI grant as the "parent" grant with no suffix
+        # Rename GRANTREFERENCE for non- LEAD_GRANT so there aren't GRANTREFERENCE DataMad database clashes. Leave the PI grant as the "parent" grant with no suffix
         # Identify PIs (in case of multiple label the first one), if no PI then they are labelled in order of preference:
         # Grant-Manager, CI, Project-Lead, Project-Co-Lead-UK, etc unspecified and unknown last.
-        
-        tmr_unique = df["TEAM_MEMBER_ROLE"].unique().tolist()
-        tmr_known_in_pref_order = ['Principal Investigator', 'Co Investigator', 'Researcher Co Investigator', 'Project lead', 'Project co-lead (UK)', 
-                                   'Grant manager', 'Fellow', 'Researcher co-lead','Researcher', 'Specialist', 'Research and innovation associate', 
-                                   'Technician', 'Professional enabling staff', 'Unspecified']
-        
-        special_order = {u: i for i, u in enumerate(reversed(tmr_known_in_pref_order), 1)}
-        tmr_unique.sort(key=lambda s: special_order.get(s, 0), reverse=True)
-
-        # Create categorial in order given above
-        df["tmr_mapping_cat"] = pd.Categorical(df['TEAM_MEMBER_ROLE'], tmr_unique, )
-
-        # Sort values by GRANTREFERENCE and tmr_mapping with its categorical order given above
-        df = df.sort_values(by=['GRANTREFERENCE', 'tmr_mapping_cat'])
-        df["PI_FLAG"] = df.groupby(['GRANTREFERENCE']).cumcount() + 1
-
-        # Label non PI grants with tmr_mapping suffix
-        df.loc[(df.PI_FLAG != 1) & (df.LEAD_GRANT != 1), 'GRANTREFERENCE'] = df.loc[(df.PI_FLAG != 1) & (df.LEAD_GRANT != 1), 'GRANTREFERENCE'] + "_" + df.loc[(df.PI_FLAG != 1) & (df.LEAD_GRANT != "Y"), 'TEAM_MEMBER_ROLE']
-
-        # Label grants with more than one PI with "PI_additional" suffix
-        df.loc[(df.PI_FLAG != 1) & (df.LEAD_GRANT == 1), 'GRANTREFERENCE'] = df.loc[(df.PI_FLAG != 1) & (df.LEAD_GRANT == 1), 'GRANTREFERENCE'] + "_PI-additional"
-
-        # Now set "LEAD_GRANT" "Y" to match PI_FLAG==1, set everything else to N
-        df.loc[(df.PI_FLAG == 1), 'LEAD_GRANT'] = 1
-        df.loc[(df.PI_FLAG != 1), 'LEAD_GRANT'] = 0
+        df = self.rename_grant_ref(df)
         
         # Create hide record, set all but LEAD_GRANT to hidden "1" status
         df["HIDE_RECORD"] = 1
-        df.loc[(df.PI_FLAG == 1), 'HIDE_RECORD'] = 0
+        df.loc[(df.LEAD_GRANT == 1), 'HIDE_RECORD'] = 0
 
         # Need to populate PARENT_GRANT with grant number for LEAD_GRANT, where appropriate
         df["PARENT_GRANT"] = df['GRANTREFERENCE'].str.findall('^.+?(?=_)').str.join(", ")
-
-        df = df.drop(["TEAM_MEMBER_ROLE", "tmr_mapping_cat", "PI_FLAG"], axis=1) # Delete TEAM_MEMBER_ROLE, no longer needed
-
-        # Reorder columns to Siebel order (easier to read for user when debugging, not needed for import via Django)
-        col_order = ['GRANTREFERENCE', 'NERC_ID', 'PROJECT_TITLE', 'LEAD_GRANT', 'PARENT_GRANT',
-                        'SCHEME', 'CALL', 'GRANT_TYPE',
-                        'GRANT_HOLDER', 'EMAIL', 'RESEARCH_ORG',
-                        'DEPARTMENT', 'ACTUAL_START_DATE', 'ACTUAL_END_DATE',
-                        'NCAS', 'NCEO', 'PROPOSED_ST_DT', 'PROPOSED_END_DT',
-                        'GRANT_STATUS', 'ADDRESS1', 'CITY',
-                        'POSTCODE', 'AMOUNT',
-                        'ROUTING_CLASSIFICATION', 'SCIENCE_AREA',
-                        'GEOGRAPHIC_AREA', 'SECONDARY_CLASSIFICATION',
-                        'ABSTRACT', 'OBJECTIVES', 'FACILITY', 'HIDE_RECORD']
-
-        df = df[col_order]
 
         # Ensure types are correct on bool and datetime fields
         df["LEAD_GRANT"] = df["LEAD_GRANT"].astype("bool")
@@ -262,14 +263,14 @@ class Command(BaseCommand):
         df["NCEO"] = df["NCEO"].astype("bool")
         df["NCAS"] = df["NCAS"].astype("bool")
 
-        # df['PROPOSED_ST_DT'] = pd.to_datetime(df['PROPOSED_ST_DT'])
-        # df['PROPOSED_END_DT'] = pd.to_datetime(df['PROPOSED_END_DT'])
-        # df['ACTUAL_START_DATE'] = pd.to_datetime(df['ACTUAL_START_DATE'])
-        # df['ACTUAL_END_DATE'] = pd.to_datetime(df['ACTUAL_END_DATE'])
+        # Delete columns which aren't imported into DataMad
+        df = df.drop(["TEAM_MEMBER_ROLE","NEW_ADMINISTRATING_COUNCIL",
+                      "sort_column", "cumu_count","ROLE_FLAG"], axis=1) 
  
         # Create mapping to go from renamed DataBank fields to CEDA DataMad database
         mapping = {
                 'GRANTREFERENCE': 'grant_ref',
+                'UKRI_ID': 'ukri_id',
                 'NERC_ID': 'nerc_id',
                 'PROJECT_TITLE': 'title',
                 'SCHEME': 'scheme',

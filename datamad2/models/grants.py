@@ -18,7 +18,7 @@ import re
 from model_utils.fields import MonitorField
 import logging
 
-SCIENCE_AREA_PATTERN = re.compile('(?P<area>\w+):\s?(?P<percentage>\d{1,3})%', re.M)
+SCIENCE_AREA_PATTERN = re.compile(r'(?P<area>\w+):\s?(?P<percentage>\d{1,3})%', re.M)
 UNFUNDED_GRANT_TYPES = ['Strategy & Partnerships (KE)','Public Engagement Grants','NERC Strategic Capital Grants']
 
 LOGGER = logging.getLogger(__name__)
@@ -193,7 +193,9 @@ class ImportedGrant(models.Model):
     title = models.CharField(max_length=1024, default='')
     # Grant Reference	Siebel	Unique identifier for the grant			GRANTREFERENCE
     grant_ref = models.CharField(max_length=50, default='', blank=True)
-    # New UKRI Databank reference
+    # UKRI Databank reference
+    ukri_id = models.CharField(max_length=20, default='', blank=True)
+    # NERC ID
     nerc_id = models.CharField(max_length=20, default='', blank=True)
     # grant to imported grant relationship
     grant = models.ForeignKey(to=Grant, on_delete=models.PROTECT, null=True, blank=True)
