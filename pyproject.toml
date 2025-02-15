@@ -23,6 +23,9 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.11.6"
 
+[tool.poetry.requires-plugins]
+poetry-plugin-export = ">=1.8"
+
 # CEDA dependencies
 ceda-elasticsearch-tools = {git = "https://github.com/cedadev/ceda-elasticsearch-tools.git", rev = "d365338d7243d1bff2a1266c2129ce72a79b2af1"}
 django-haystack-elasticsearch = {git = "https://github.com/Mahir-Sparkess/django-haystack-elasticsearch.git", rev = "dd47f0e9c492908d4cc090ad4377fe7fc5e5efb8"}
