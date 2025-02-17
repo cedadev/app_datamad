@@ -20,11 +20,11 @@ packages = [
     { include = "datamadsite"},
 ]
 
-[tool.poetry.dependencies]
-python = "^3.11.6"
-
 [tool.poetry.requires-plugins]
 poetry-plugin-export = ">=1.8"
+
+[tool.poetry.dependencies]
+python = "^3.11"
 
 # CEDA dependencies
 ceda-elasticsearch-tools = {git = "https://github.com/cedadev/ceda-elasticsearch-tools.git", rev = "d365338d7243d1bff2a1266c2129ce72a79b2af1"}
@@ -61,11 +61,11 @@ Jinja2 = "3.1.4"
 jira = "3.8.0"
 keyring = "25.4.1"
 more-itertools = "10.5.0"
-mysqlclient = "2.2.6"
+mysqlclient = "^2.2.6"
 node = "1.2.2"
 numpy = "2.1.1"
 pandas = "2.2.3"
-psycopg2-binary = "2.9.9"
+psycopg2-binary = "^2.9.9"
 pydantic = "2.9.2"
 PyJWT = "2.9.0"
 pytest-runner = "6.0.1"
