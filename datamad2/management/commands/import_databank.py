@@ -14,6 +14,7 @@ from django.core.management.base import BaseCommand
 from datamad2.models import ImportedGrant, Grant
 from django.db import connections
 
+import yaml
 import pandas as pd
 import numpy as np
 import math
@@ -193,6 +194,29 @@ class Command(BaseCommand):
         df = df.sort_values(by=['GRANTREFERENCE'])
     
         return df
+    
+    @staticmethod
+    def hybrid_parent_child(df):
+        with open('TFS_Siebel_hybrid_parent_child.yaml', 'r') as file:
+            hybrid_parent_child = yaml.safe_load(file)
+    
+        hybrid_parent_child_df =   pd.DataFrame(hybrid_parent_child).transpose()
+        hybrid_parent_child_df = hybrid_parent_child_df.rename(columns={"parent": "PARENT_GRANT"})
+        
+        # Extract children then merge on child_1 and child_2 to fill in PARENT_GRANT
+        children = pd.concat([hybrid_parent_child_df.child_1, hybrid_parent_child_df.child_2])
+        children_df = pd.DataFrame(children, columns=["GRANTREFERENCE"])
+        children_df = children_df.dropna()  # Remove "Missing" grants
+
+        children_df = children_df.join(hybrid_parent_child_df, lsuffix='_new', rsuffix='_orig')
+
+        # Merge into main dataframe to get parent grants already in datamad
+        df = df.merge(children_df[['GRANTREFERENCE', 'PARENT_GRANT']], how='left', on='GRANTREFERENCE')
+        
+        df = df.sort_values(by="PARENT_GRANT")
+
+        return df
+    
 
     def handle(self, *args, **options):
         if options.get('lookback'):
@@ -232,10 +256,6 @@ class Command(BaseCommand):
         n_cols = ["NCAS", "NCEO", "LEAD_GRANT"]
         df = self.populate_ncas_nceo_leadgrant_sort_column(n_cols, df)
 
-        # Delete any duplicate name rows caused by people being listed as more than one member role, prioritise keeping PI
-        df = df.sort_values(by=['LEAD_GRANT'], ascending=False)
-        df = df.drop_duplicates(subset=(['GRANTREFERENCE', 'GRANT_HOLDER', 'TEAM_MEMBER_ROLE', 'EMAIL']), keep='first')
-
         # Clean up NERC IDs so they don't have "UKRI" prefix if the string contains NE/
         df['NERC_ID'] = df['NERC_ID'].str.replace('UKRI/NE/', 'NE/')
 
@@ -244,6 +264,10 @@ class Command(BaseCommand):
         # Otherwise they will be double imported under the new UKRI grant ID and the old NERC ID.
         hybrid_list = self.hybrid_tfs_siebel_list()
         df.loc[df.GRANTREFERENCE.isin(hybrid_list), "GRANTREFERENCE"] = df[df.GRANTREFERENCE.isin(hybrid_list)]["NERC_ID"]
+
+        # Delete any duplicate name rows caused by people being listed as more than one member role, prioritise keeping PI
+        df = df.sort_values(by=['LEAD_GRANT'], ascending=False)
+        df = df.drop_duplicates(subset=(['GRANTREFERENCE', 'GRANT_HOLDER', 'TEAM_MEMBER_ROLE', 'EMAIL']), keep='first')
 
         # Rename GRANTREFERENCE for non- LEAD_GRANT so there aren't GRANTREFERENCE DataMad database clashes. Leave the PI grant as the "parent" grant with no suffix
         # Identify PIs (in case of multiple label the first one), if no PI then they are labelled in order of preference:
@@ -254,6 +278,11 @@ class Command(BaseCommand):
         df["HIDE_RECORD"] = 1
         df.loc[(df.LEAD_GRANT == 1), 'HIDE_RECORD'] = 0
 
+        # Ensure existing Datamad parent/ child relationships are maintained and 
+        # write child/ parent relationship for pre-existing Datamad grants
+        df = self.hybrid_parent_child(df)
+
+        # Now populate the rest of the parent/ child relationships
         # Need to populate PARENT_GRANT with grant number for LEAD_GRANT, where appropriate
         df["PARENT_GRANT"] = df['GRANTREFERENCE'].str.findall('^.+?(?=_)').str.join(", ")
 
