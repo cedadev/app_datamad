@@ -261,6 +261,11 @@ HAYSTACK_CONNECTIONS = {
 HAYSTACK_FACET_LIMIT = 100
 """
 
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'staticfiles')
+]
+
+
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 from .settings_local import *
