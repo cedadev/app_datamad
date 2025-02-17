@@ -197,7 +197,7 @@ class Command(BaseCommand):
     
     @staticmethod
     def hybrid_parent_child(df):
-        with open('TFS_Siebel_hybrid_parent_child.yaml', 'r') as file:
+        with open('./datamad2/TFS_Siebel_hybrid_parent_child.yaml', 'r') as file:
             hybrid_parent_child = yaml.safe_load(file)
     
         hybrid_parent_child_df =   pd.DataFrame(hybrid_parent_child).transpose()
