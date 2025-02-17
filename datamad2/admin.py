@@ -63,6 +63,7 @@ class PreservationPlanInline(admin.TabularInline):
 #                                                                              #
 ################################################################################
 
+@admin.register(User)
 class UserAdmin(BaseUserAdmin):
     list_display = ( 'first_name', 'last_name', 'email','data_centre', 'is_admin')
     search_fields = ('email',)
@@ -81,6 +82,7 @@ class UserAdmin(BaseUserAdmin):
     )
 
 
+@admin.register(ImportedGrant)
 class ImportedGrantAdmin(admin.ModelAdmin):
     search_fields = ['grant_ref', 'title']
     list_display = ('grant_ref', 'title', 'creation_date')
@@ -95,6 +97,7 @@ class ImportedGrantAdmin(admin.ModelAdmin):
         return False
 
 
+@admin.register(Grant)
 class GrantAdmin(admin.ModelAdmin):
     readonly_fields = ['updated_imported_grant', 'science_area']
     search_fields = ['grant_ref', 'importedgrant__title']
@@ -110,10 +113,12 @@ class GrantAdmin(admin.ModelAdmin):
         return False
 
 
+@admin.register(DataProduct)
 class DataProductAdmin(admin.ModelAdmin):
     pass
 
 
+@admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ('title', 'grant')
 
@@ -121,6 +126,7 @@ class DocumentAdmin(admin.ModelAdmin):
     autocomplete_fields = ['grant']
 
 
+@admin.register(DataCentre)
 class DataCentreAdmin(admin.ModelAdmin):
     inlines = [
         JIRAIssueTypeInline,
@@ -129,12 +135,3 @@ class DataCentreAdmin(admin.ModelAdmin):
         DataFormatInline,
         PreservationPlanInline,
     ]
-
-
-# Register the Admin classes
-admin.site.register(User, UserAdmin)
-admin.site.register(ImportedGrant, ImportedGrantAdmin)
-admin.site.register(Grant, GrantAdmin)
-admin.site.register(DataProduct, DataProductAdmin)
-admin.site.register(Document, DocumentAdmin)
-admin.site.register(DataCentre, DataCentreAdmin)

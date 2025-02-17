@@ -48,6 +48,26 @@
                         </tr>
 
                         <tr>
+                            {% if 'ukri_id' in things %}
+                                <th class="text-danger">UKRI ID</th>
+                                <td class="text-danger"> {{ imported_grant.ukri_id }} </td>
+                            {% else %}
+                                <th>UKRI ID</th>
+                                <td> {{ imported_grant.ukri_id }} </td>
+                            {% endif %}
+                        </tr>
+
+                        <tr>
+                            {% if 'nerc_id' in things %}
+                                <th class="text-danger">NERC ID</th>
+                                <td class="text-danger"> {{ imported_grant.nerc_id }} </td>
+                            {% else %}
+                                <th>NERC ID</th>
+                                <td> {{ imported_grant.nerc_id }} </td>
+                            {% endif %}
+                        </tr>
+
+                        <tr>
                             {% if 'creation_date' in things %}
                                 <th class="text-danger">Last Updated</th>
                                 <td class="text-danger"> {{ imported_grant.creation_date|default_if_none:"N/A"|date:"d M Y" }} </td>

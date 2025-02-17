@@ -1,0 +1,58 @@
+FROM rockylinux:9.3
+
+WORKDIR /app
+
+# Installing Python in the image
+RUN dnf install python3.11 -y
+
+# RUN wget https://www.python.org/ftp/python/3.10.0/Python-3.10.0.tar.xz
+# RUN tar -xf Python-3.10.0.tar.xz
+# WORKDIR /Python-3.10.0
+# RUN ls
+# RUN ./configure --enable-optimizations
+# RUN make -j 2
+# RUN nproc
+# RUN make altinstall
+
+# Ensure pip is installed
+RUN python3 -m ensurepip --upgrade
+
+# Install MySQL and required drivers for Django to use MySQL
+# RUN dnf config-manager --set-enabled crb
+RUN dnf install epel-release -y
+RUN crb enable
+RUN dnf install python3-devel -y
+RUN dnf install mysql-server -y
+RUN dnf install pkgconf pkgconf-pkg-config -y
+RUN dnf install mysql-devel -y
+
+RUN dnf install gcc -y
+
+# Install git to clone ceda-elasticsearch-tools into image (cloned in requirements.txt)
+RUN dnf -y install git
+
+# Copy the project code into the container
+COPY ./ /app/
+
+RUN pip3 install poetry==1.8.5
+# RUN poetry install
+
+RUN poetry export --format requirements.txt --output requirements.txt --without-hashes --no-interaction
+
+RUN pip3 install -r requirements.txt
+
+# Add sqllite support for existing DataMad data (imported from Siebel via UKCEH)
+RUN dnf install sqlite -y
+
+# TODO needed for debug only
+RUN pip3 install debugpy
+
+# ENV DJANGO_SUPERUSER_PASSWORD = Password
+# RUN python3 manage.py createsuperuser  --email=test@test.com --first_name=Test --last_name=Person --noinput
+
+# RUN python3 manage.py import_database --file ./import_csvs/datamad_databank_debug.csv
+# RUN yes | python3 manage.py rebuild_index
+
+# EXPOSE 8000
+
+# CMD [ "python3", "manage.py"]

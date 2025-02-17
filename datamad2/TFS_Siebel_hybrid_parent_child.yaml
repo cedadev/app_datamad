@@ -1,0 +1,80 @@
+grant_1:
+  parent: NE/Y503265/1
+  child_1: NE/Y503289/1
+  child_2: NE/Y503277/1
+grant_2:
+  parent: NE/Y503277/1
+  child_1: NE/Y503265/1
+grant_3:
+  parent: NE/Y503289/1
+  child_1: NE/Y503265/1
+grant_4:
+  parent: NE/Y503290/1
+  child_1: NE/Z503356/1
+grant_5:
+  parent: NE/Y503307/1
+  child_1: NE/Y503319/1
+grant_6:
+  parent: NE/Y503319/1
+  child_1: NE/Y503307/1
+grant_7:
+  parent: NE/Y503320/1
+  child_1: NE/Z503344/1
+grant_8:
+  parent: NE/Y503332/1
+  child_1: NE/Z503344/1
+grant_9:
+  parent: NE/Z000106/1
+  child_1: NE/Z000173/1
+grant_10:
+  parent: NE/Z000165/1
+  child_1: NE/Z000181/1
+grant_11:
+  parent: NE/Z000173/1
+  child_1: NE/Z000106/1
+grant_12:
+  parent: NE/Z000181/1
+  child_1: NE/Z000165/1
+grant_13:
+  parent: NE/Z503344/1
+  child_1: NE/Y503320/1
+  child_2: NE/Y503332/1
+grant_14:
+  parent: NE/Z503356/1
+  child_1: NE/Y503290/1
+grant_15:
+  parent: NE/Z50340X/1
+  child_1: NE/Z503411/1
+grant_16:
+  parent: NE/Z503411/1
+  child_1: NE/Z50340X/1
+grant_17:
+  parent: NE/Z503423/1
+  child_1: NE/Z503435/1
+grant_18:
+  parent: NE/Z503435/1
+  child_1: NE/Z503423/1
+grant_19:
+  parent: NE/Z50354X/1
+  child_1: NE/Z503551/1
+grant_20:
+  parent: NE/Z503551/1
+  child_1: NE/Z50354X/1
+grant_21:
+  parent: NE/Z503666/1
+  child_1: NE/Z503678/1
+grant_22:
+  parent: NE/Z503678/1
+  child_1: NE/Z503666/1
+grant_23:
+  parent: NE/Z503770/1
+  child_1: NE/Z503873/1
+grant_24:
+  parent: NE/Z503782/1
+  child_1: NE/Z503885/1
+grant_25:
+  parent: NE/Z503873/1
+  child_1: NE/Z503770/1
+grant_26:
+  parent: NE/Z503885/1
+  child_1: NE/Z503782/1

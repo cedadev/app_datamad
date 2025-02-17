@@ -1,0 +1,93 @@
+[tool.poetry]
+name = "app_datamad"
+version = "0.1.0"
+description = "DataMAD is a NERC system for managing NERC grants and data archiving amongst the five NERC datacentres. It is a Django application which provides processes to claim grants from data producing projects and generate tickets in JIRA to manage the pipeline from project start to data production, delivery and archiving."
+authors = ["Matthew Paice <matthew.paice@stfc.ac.uk> Richard Smith <> Elle Smith <>"]
+classifiers = [
+            "Programming Language :: Python",
+            "Framework :: Django",
+            "Topic :: Internet :: WWW/HTTP",
+            "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+        ]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/cedadev/app_datamad"
+keywords = ['web', 'django', 'DataMad', 'NERC']
+
+packages = [
+    { include = "datamad2"},
+    { include = "datamad2_api"},
+    { include = "datamadsite"},
+]
+
+[tool.poetry.requires-plugins]
+poetry-plugin-export = ">=1.8"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+# CEDA dependencies
+ceda-elasticsearch-tools = {git = "https://github.com/cedadev/ceda-elasticsearch-tools.git", rev = "d365338d7243d1bff2a1266c2129ce72a79b2af1"}
+django-haystack-elasticsearch = {git = "https://github.com/Mahir-Sparkess/django-haystack-elasticsearch.git", rev = "dd47f0e9c492908d4cc090ad4377fe7fc5e5efb8"}
+django-jira-oauth = {git = "https://github.com/rsmith013/django-jira-oauth.git", rev = "13c776653c48058a69a110cbd9c8c139a672594f"}
+fwtheme-django = {git = "https://github.com/cedadev/fwtheme-django.git", rev = "786021bdb6f34cf693d44e96803a5df7d88b76fd"}
+fwtheme-django-ceda-serv = {git = "https://github.com/cedadev/fwtheme-django-ceda-serv.git", rev = "4653d071d5a53e1ab0953b2a83cb1265cc05ab91"}
+orgtheme-datamad = {git = "https://github.com/cedadev/orgtheme-datamad.git", rev = "015dc5767f75b068a8883bf7380056e863be19a2"}
+
+# Suspected main dependencies
+babel = "2.16.0"
+Brotli = "1.1.0"
+chardet = "5.2.0"
+cryptography = ">=42.0.4"
+django = "4.2"
+crispy-bootstrap4 = "2024.1"
+django-bootstrap-datepicker-plus = "5.0.5"
+django-classy-tags = "4.1.0"
+django-cookie-law = "2.2.0"
+django-crispy-forms = "2.3"
+django-dprog-jfu = "3.0.0"
+django-haystack = "3.3.0"
+djangorestframework = "3.15.2"
+django-model-utils = "5.0.0"
+django-sizefield = "2.1.0"
+django-tables2 = "2.7.0"
+django-unused-media = "0.2.2"
+django-upgrade = "1.21.0"
+docxcompose = "1.4.0"
+docxtpl = "0.18.0"
+elastic-transport = "7.16.0"
+elasticsearch = "7.6.0"
+Jinja2 = "3.1.4"
+jira = "3.8.0"
+keyring = "25.4.1"
+more-itertools = "10.5.0"
+mysqlclient = "^2.2.6"
+node = "1.2.2"
+numpy = "2.1.1"
+pandas = "2.2.3"
+psycopg2-binary = "^2.9.9"
+pydantic = "2.9.2"
+PyJWT = "2.9.0"
+pytest-runner = "6.0.1"
+python-docx = "1.1.2"
+pytz = "2024.2"
+pywin32-ctypes = "0.2.3"
+pyyaml = "6.0.2"
+requests = "2.32.3"
+setuptools = "75.1.0"
+six = "1.16.0"
+sqlparse = "0.5.1"
+whitenoise = "6.7.0"
+
+[tool.poetry.group.dev.dependencies]
+django-stubs = {extras = ["compatible-mypy"], version = "^5.0.0"}
+
+[tool.mypy]
+strict = false
+plugins = ["mypy_django_plugin.main"]
+ignore_missing_imports = true
+packages = "datamad2,datamad2_api,datamadsite"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

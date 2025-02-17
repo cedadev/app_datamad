@@ -11,7 +11,7 @@ __contact__ = 'richard.d.smith@stfc.ac.uk'
 
 from django import forms
 from datamad2.models import Grant, ImportedGrant
-from bootstrap_datepicker_plus import DatePickerInput
+from bootstrap_datepicker_plus.widgets import DatePickerInput
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, ButtonHolder, HTML
@@ -28,7 +28,7 @@ class UpdateClaimForm(forms.ModelForm):
 
 class GrantInfoForm(forms.ModelForm):
 
-    date_contacted_pi = forms.DateField(input_formats=['%d/%m/%Y'], label='Date contacted PI', widget=DatePickerInput(format='%d/%m/%Y'), required=False)
+    date_contacted_pi = forms.DateField(input_formats=['%d/%m/%Y'], label='Date contacted PI', widget=DatePickerInput(options={'format':'%d/%m/%Y'}), required=False)
 
     class Meta:
         model = Grant
@@ -51,7 +51,7 @@ class GrantFieldsExportForm(forms.Form):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
+ 
         self.helper = FormHelper()
 
         grant_excluded_fields = ['ID']

@@ -12,7 +12,7 @@ __contact__ = 'richard.d.smith@stfc.ac.uk'
 from django.conf import settings
 from django.db.models.constants import LOOKUP_SEP
 from django.core.exceptions import FieldDoesNotExist
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 
 # Third party imports
 from dateutil.parser import parse
@@ -156,4 +156,4 @@ def get_verbose_name(model: 'Model', lookup: str, sep: str = LOOKUP_SEP) -> str:
             model = f.related_model
             continue
 
-    return force_text(f.verbose_name)
+    return force_str(f.verbose_name)
