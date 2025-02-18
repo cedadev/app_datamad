@@ -24,7 +24,6 @@ from haystack.generic_views import FacetedSearchView
 import django.utils.decorators
 import django.views.decorators.csrf
 
-
 @django.utils.decorators.method_decorator(django.views.decorators.csrf.ensure_csrf_cookie, name="dispatch")
 class FacetedGrantListView(LoginRequiredMixin, FacetedSearchView):
     """

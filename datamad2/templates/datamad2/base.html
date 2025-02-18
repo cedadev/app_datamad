@@ -1,8 +1,5 @@
 {% extends 'fwtheme_django/layout.html' %}
-
 {% load static %}
-
-{% csrf_token %}
 {% block head_title %}Grants{% endblock %}
 
 {% block stylesheets %}
@@ -192,6 +189,7 @@
 
 
 {% block footer %}
+    {% csrf_token %}
     <footer>
         <div class="container">
             <div class="row d-flex justify-content-around border border-light border-bottom-0 border-left-0 border-right-0 pt-5 pb-2 mt-5">
