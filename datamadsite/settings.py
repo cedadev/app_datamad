@@ -261,11 +261,12 @@ HAYSTACK_CONNECTIONS = {
 HAYSTACK_FACET_LIMIT = 100
 """
 
+"""
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'staticfiles')
+    os.path.join(BASE_DIR, '/datamad2staticfiles')
 ]
+"""
 
-
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, '/datamad2/staticfiles')
 
 from .settings_local import *

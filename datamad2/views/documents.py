@@ -51,9 +51,11 @@ def multiple_document_upload(request):
             if not m:  # Check document naming pattern against new UKRI convention, accept both, for now.
                 m = DOCUMENT_NAMING_PATTERN_DATABANK.match(name)
                 if not m:
-                    raise FormatError(f"File name does not match convention. e.g NE_G0123X_1_DMP.docx")
-                else:
-                    raise FormatError(f"File name does not match convention. e.g 12345_DMP.docx")
+                    m = DOCUMENT_NAMING_PATTERN_DATABANK.match(name)
+                    if not m:
+                        raise FormatError(f"File name {name} is not formatted correctly e.g \
+                                          NE_G0123X_1_DMP.docx for NERC grant ref format \
+                                          or 12345_DMP.docx for UKRI format.")
 
             grant_ref = m.group('grant_ref').replace('_', '/')
 
@@ -122,7 +124,9 @@ def document_upload(request, pk):
                 if not m:
                     m = DOCUMENT_NAMING_PATTERN_DATABANK.match(name)
                     if not m:
-                        raise FormatError(f"File name {name} is not formatted correctly")
+                        raise FormatError(f"File name {name} is not formatted correctly e.g \
+                                          NE_G0123X_1_DMP.docx for NERC grant ref format \
+                                          or 12345_DMP.docx for UKRI format.")
 
                 # Check grant ref against grant you are trying to upload against
                 grant_ref = (m.group('grant_ref')).replace('_', '/')
