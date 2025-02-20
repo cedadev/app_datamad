@@ -21,11 +21,16 @@ class DatamadFacetedSearchForm(FacetedSearchForm):
         ('-actual_start_date', 'Start Date (desc)'),
         ('grant_ref_exact', 'Grant Ref (A-Z)'),
         ('-grant_ref_exact', 'Grant Ref (Z-A)'),
+        ('ukri_ref_exact', 'UKRI ID (A-Z)'),
+        ('-ukri_ref_exact', 'UKRI ID (Z-A)'),
+        ('nerc_ref_exact', 'NERC ID (A-Z)'),
+        ('-nerc_ref_exact', 'NERC ID (Z-A)'),
         ('grant_title_exact', 'Grant Title (A-Z)'),
         ('-grant_title_exact', 'Grant Title (Z-A)'),
         ('grant_holder_exact', 'Grant Holder (A-Z)'),
         ('-grant_holder_exact', 'Grant Holder (Z-A)'),
     )
+
     sort_by = forms.ChoiceField(choices=CHOICES, required=False,
                                 widget=forms.Select(attrs={"onchange":"trigger_submit(this)"}))
 
@@ -51,7 +56,7 @@ class DatamadFacetedSearchForm(FacetedSearchForm):
         return self.searchqueryset.all()
 
     def search(self):
-        sqs = super().search()
+        sqs = super(DatamadFacetedSearchForm, self).search()
 
         if self.cleaned_data['sort_by']:
             order = self.cleaned_data['sort_by']

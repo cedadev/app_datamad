@@ -8,7 +8,7 @@ __copyright__ = 'Copyright 2018 United Kingdom Research and Innovation'
 __license__ = 'BSD - see LICENSE file in top-level package directory'
 __contact__ = 'richard.d.smith@stfc.ac.uk'
 
-from datamad2.models.grants import Grant, ImportedGrant
+from datamad2.models.grants import Grant
 from haystack import indexes
 from datamad2.utils import call_strip_date
 
@@ -16,6 +16,8 @@ from datamad2.utils import call_strip_date
 class GrantIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
     grant_ref = indexes.CharField(model_attr='grant_ref', faceted=True)
+    ukri_ref = indexes.CharField(model_attr='importedgrant__ukri_id', null=True, faceted=True)
+    nerc_ref = indexes.CharField(model_attr='importedgrant__nerc_id', null=True, faceted=True)
     assigned_datacentre = indexes.CharField(model_attr='assigned_data_centre', null=True, faceted=True, default='Unassigned')
     other_datacentre = indexes.CharField(model_attr='other_data_centre', null=True, faceted=True, default='Unassigned')
     labels = indexes.CharField(model_attr='importedgrant__labels', null=True, faceted=True, default='Unassigned')

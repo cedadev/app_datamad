@@ -1,6 +1,8 @@
 {{ object.importedgrant.title }}
 {{ object.importedgrant.abstract }}
 {{ object.grant_ref }}
+{{ object.importedgrant.ukri_id }}
+{{ object.importedgrant.nerc_id }}
 {{ object.importedgrant.grant_holder }}
 {{ object.importedgrant.department }}
 {{ object.importedgrant.research_org }}
