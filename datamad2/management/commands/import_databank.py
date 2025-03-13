@@ -367,6 +367,16 @@ class Command(BaseCommand):
 
                 value = getattr(row, source_field)
 
+                # Set ACTUAL_START_DATE / ACTUAL_END_DATE  as PROPOSED_ST_DT/ PROPOSED_END_DT if actual start and end haven't yet been set in Databank.
+                # It will update once the actual start and end date are set in Databank.
+                # This stops an issue where Jira needs a start/ end date, but the project may not start for months even though
+                # it is displayed in Datamad (also some projects also seem to start before their actual start dates as Databank takes a while to be updated,
+                # this ensures we don't miss the start dates of grants)
+                if (source_field == 'ACTUAL_START_DATE') & (value is None):
+                    value = getattr(row, 'PROPOSED_ST_DT')
+                elif (source_field == 'ACTUAL_END_DATE') & (value is None):
+                    value = getattr(row, 'PROPOSED_END_DT')
+
                 # Ignore None value
                 if value is None:
                     continue
@@ -375,7 +385,6 @@ class Command(BaseCommand):
                 if not isinstance(value, datetime.date):
                         if not isinstance(value, str) and math.isnan(value):
                                 continue
-
                 elif source_field in ('PROPOSED_ST_DT', 'PROPOSED_END_DT', 'ACTUAL_START_DATE', 'ACTUAL_END_DATE'):
                     # Ensure the date is converted correctly (although DataBank should always give datetime fields for the above)
                     if not isinstance(value, datetime.date):
