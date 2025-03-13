@@ -14,7 +14,6 @@ from django.core.management.base import BaseCommand
 from datamad2.models import ImportedGrant, Grant
 from django.db import connections
 
-import yaml
 import pandas as pd
 import numpy as np
 import math
@@ -318,6 +317,9 @@ class Command(BaseCommand):
         df["HIDE_RECORD"] = df["HIDE_RECORD"].astype("bool")
         df["NCEO"] = df["NCEO"].astype("bool")
         df["NCAS"] = df["NCAS"].astype("bool")
+
+        # Ensure amount awarded is a float not a decimal:
+        df["AMOUNT"] = df["AMOUNT"].astype("float")
 
         # Delete columns which aren't imported into DataMad
         df = df.drop(["TEAM_MEMBER_ROLE","NEW_ADMINISTRATING_COUNCIL",
