@@ -28,7 +28,7 @@ class UpdateClaimForm(forms.ModelForm):
 
 class GrantInfoForm(forms.ModelForm):
 
-    date_contacted_pi = forms.DateField(input_formats=['%d/%m/%Y'], label='Date contacted PI', widget=DatePickerInput(options={'format':'%d/%m/%Y'}), required=False)
+    date_contacted_pi = forms.DateField(input_formats=['%Y-%m-%d'], label='Date contacted PI', widget=DatePickerInput(), required=False)
 
     class Meta:
         model = Grant
