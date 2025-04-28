@@ -82,6 +82,14 @@ class JIRAIssueType(models.Model):
 
         help_text='Format: customfield_{{number}} | Returned DataType: String'
     )
+    nerc_id_field = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='NERC ID Field ID',
+
+        help_text='Format: customfield_{{number}} | Returned DataType: String'
+    )
+
     pi_field = models.CharField(
         max_length=100,
         verbose_name='Principle Investigator Field ID',

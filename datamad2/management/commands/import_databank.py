@@ -435,10 +435,11 @@ class Command(BaseCommand):
             # Get grant to add parent grant to
             grant = Grant.objects.filter(grant_ref=row_grant).first()
 
-            if pg and grant:
+            if pg and grant:  # Grant is a child of another parent grant
                 grant.hide_record = hide_record
                 grant.parent_grant = pg
-            else:
-                grant.hide_record = hide_record
+            else:  # Grant is parent grant
+                if grant.hide_record != True:  # If grant hidden by user in Datamad, don't make it visible again.
+                    grant.hide_record = hide_record
 
             grant.save()
