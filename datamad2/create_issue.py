@@ -12,6 +12,7 @@ FIELD_MAPPING = {
     'proposed_start_date': 'str(imported_grant.proposed_start_date)',
     'proposed_end_date': 'str(imported_grant.proposed_end_date)',
     'grant_ref_field': 'imported_grant.grant_ref',
+    'nerc_id_field': 'imported_grant.nerc_id',
     'pi_field': 'imported_grant.grant_holder',
     'research_org_field': 'imported_grant.research_org',
     'primary_datacentre_field': 'request.user.data_centre.name',
