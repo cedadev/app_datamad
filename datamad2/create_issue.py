@@ -83,7 +83,7 @@ def make_issue(request, imported_grant):
     jira = get_jira_client(request)
     issue_dict = {
         'project': str(request.user.data_centre.jira_project),
-        'summary': f'{imported_grant.grant_ref}:{imported_grant.title}',
+        'summary': f'{imported_grant.nerc_id}:{imported_grant.title}',
         'description': imported_grant.abstract,
         'issuetype': {'id': str(request.user.data_centre.jiraissuetype.issuetype)},
     }
@@ -91,11 +91,11 @@ def make_issue(request, imported_grant):
     issue_dict.update(map_datamad_to_jira(request, imported_grant))
 
     # Check if issue already exists
-    grant_ref = imported_grant.grant_ref.replace('/', '\\u002f')
+    nerc_id = imported_grant.nerc_id.replace('/', '\\u002f')
 
     # Check the issuetype and limit the fields returned to save time and data transfer
     results = jira.search_issues(
-        f'summary~{grant_ref} AND issuetype={request.user.data_centre.jiraissuetype.issuetype}',
+        f'summary~{nerc_id} AND issuetype={request.user.data_centre.jiraissuetype.issuetype}',
         fields=[
             'issuetype',
             'summary'
@@ -116,7 +116,7 @@ def make_issue(request, imported_grant):
         # Add backreference to datamad
         jira.add_simple_link(new_issue, {
             'url': datamad_permalink,
-            'title': f'View grant: {imported_grant.grant_ref} in Datamad'
+            'title': f'View grant ref: {imported_grant.grant_ref}, NERC ID: {imported_grant.nerc_id} in Datamad'
         })
 
         # create subtasks
@@ -139,7 +139,7 @@ def create_subtask(subtask, request, new_issue, imported_grant, reporter):
         ref_time = imported_grant.actual_start_date
 
     subtask_dict = {'project': str(request.user.data_centre.jira_project),
-                    'summary': f"{imported_grant.grant_ref}:{subtask.name}",
+                    'summary': f"{imported_grant.nerc_id}:{subtask.name}",
                     'description': '',
                     'issuetype': {'name': 'Sub-Task'},
                     'parent': {'key': new_issue.key},
