@@ -27,8 +27,6 @@ poetry-plugin-export = ">=1.8"
 python = "^3.11"
 
 # CEDA dependencies
-ceda-elasticsearch-tools = {git = "https://github.com/cedadev/ceda-elasticsearch-tools.git", rev = "d365338d7243d1bff2a1266c2129ce72a79b2af1"}
-django-haystack-elasticsearch = {git = "https://github.com/Mahir-Sparkess/django-haystack-elasticsearch.git", rev = "dd47f0e9c492908d4cc090ad4377fe7fc5e5efb8"}
 django-jira-oauth = {git = "https://github.com/rsmith013/django-jira-oauth.git", rev = "13c776653c48058a69a110cbd9c8c139a672594f"}
 fwtheme-django = {git = "https://github.com/cedadev/fwtheme-django.git", rev = "786021bdb6f34cf693d44e96803a5df7d88b76fd"}
 fwtheme-django-ceda-serv = {git = "https://github.com/cedadev/fwtheme-django-ceda-serv.git", rev = "4653d071d5a53e1ab0953b2a83cb1265cc05ab91"}
