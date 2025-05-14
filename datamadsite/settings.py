@@ -239,10 +239,12 @@ REST_FRAMEWORK = {
 
 AUTH_USER_MODEL = 'datamad2.User'
 
+
+# Use amended Haystack engine as base haystack isn't compatible with ES8
 """
 HAYSTACK_CONNECTIONS = {
     'default': {
-        'ENGINE': 'haystack_elasticsearch.elasticsearch7.Elasticsearch7SearchEngine',
+        'ENGINE': 'datamad2.haystack_es_8_mod.elasticsearch8_backend.Elasticsearch8SearchEngine',
         'URL': '',
         'INDEX_NAME': '',
         'TIMEOUT': 5,

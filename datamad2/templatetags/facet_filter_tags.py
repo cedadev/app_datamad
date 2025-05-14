@@ -45,7 +45,7 @@ def selected_facets(context):
     converted_facets = {}
 
     for facet in selected_facets:
-        f, label = facet.split(':')
+        f, label = facet.split(':', 1)
         title = f.replace('_', ' ').title()
         converted_facets[title] = label
 
