@@ -81,18 +81,29 @@ def make_issue(request, imported_grant):
     :return: JIRA issue. Either a newly created one or the first result from the search
     """
     jira = get_jira_client(request)
-    issue_dict = {
-        'project': str(request.user.data_centre.jira_project),
-        'summary': f'{imported_grant.nerc_id}:{imported_grant.title}',
-        'description': imported_grant.abstract,
-        'issuetype': {'id': str(request.user.data_centre.jiraissuetype.issuetype)},
-    }
+
+    if (imported_grant.nerc_id is "") & (imported_grant.ukri_id is ""):
+        issue_dict = {
+            'project': str(request.user.data_centre.jira_project),
+            'summary': f'{imported_grant.grant_ref}:{imported_grant.title}',
+            'description': imported_grant.abstract,
+            'issuetype': {'id': str(request.user.data_centre.jiraissuetype.issuetype)},
+        }
+
+        nerc_id = imported_grant.grant_ref.replace('/', '\\u002f')
+    else:
+        issue_dict = {
+            'project': str(request.user.data_centre.jira_project),
+            'summary': f'{imported_grant.nerc_id}:{imported_grant.title}',
+            'description': imported_grant.abstract,
+            'issuetype': {'id': str(request.user.data_centre.jiraissuetype.issuetype)},
+        }
+
+        nerc_id = imported_grant.nerc_id.replace('/', '\\u002f')
 
     issue_dict.update(map_datamad_to_jira(request, imported_grant))
 
     # Check if issue already exists
-    nerc_id = imported_grant.nerc_id.replace('/', '\\u002f')
-
     # Check the issuetype and limit the fields returned to save time and data transfer
     results = jira.search_issues(
         f'summary~{nerc_id} AND issuetype={request.user.data_centre.jiraissuetype.issuetype}',
@@ -138,13 +149,22 @@ def create_subtask(subtask, request, new_issue, imported_grant, reporter):
     else:
         ref_time = imported_grant.actual_start_date
 
-    subtask_dict = {'project': str(request.user.data_centre.jira_project),
-                    'summary': f"{imported_grant.nerc_id}:{subtask.name}",
-                    'description': '',
-                    'issuetype': {'name': 'Sub-Task'},
-                    'parent': {'key': new_issue.key},
-                    'customfield_11660': str(imported_grant.actual_start_date),  # grant start date
-                    'duedate': str(ref_time + datetime.timedelta(weeks=subtask.schedule_time))}
+    if (imported_grant.nerc_id is "") & (imported_grant.ukri_id is ""):
+        subtask_dict = {'project': str(request.user.data_centre.jira_project),
+                'summary': f"{imported_grant.grant_ref}:{subtask.name}",
+                'description': '',
+                'issuetype': {'name': 'Sub-Task'},
+                'parent': {'key': new_issue.key},
+                'customfield_11660': str(imported_grant.actual_start_date),  # grant start date
+                'duedate': str(ref_time + datetime.timedelta(weeks=subtask.schedule_time))}
+    else:
+        subtask_dict = {'project': str(request.user.data_centre.jira_project),
+                        'summary': f"{imported_grant.nerc_id}:{subtask.name}",
+                        'description': '',
+                        'issuetype': {'name': 'Sub-Task'},
+                        'parent': {'key': new_issue.key},
+                        'customfield_11660': str(imported_grant.actual_start_date),  # grant start date
+                        'duedate': str(ref_time + datetime.timedelta(weeks=subtask.schedule_time))}
 
     subtask = jira.create_issue(fields=subtask_dict)
 
