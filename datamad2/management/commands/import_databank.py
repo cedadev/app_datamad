@@ -42,9 +42,9 @@ class Command(BaseCommand):
         hybrid_tfs_siebel = [str(x) for x in hybrid_tfs_siebel]
 
         return hybrid_tfs_siebel
-
-    # SQL query to pull information needed by DataMAD, also renames to DataMad names.
-    def custom_databank_datamad_sql_query(self):
+    
+    # Old query pre DB-00084 update
+    def custom_databank_datamad_sql_query_old(self):
         sql_databank = "SELECT \
                     fact_application.ApplicationID AS GRANTREFERENCE, \
                     fact_application.ApplicationID AS UKRI_ID, \
@@ -99,32 +99,73 @@ class Command(BaseCommand):
                     fact_application.ApplicationStatus = 'CLOSED')\
                     "
         return sql_databank
-    
-    def custom_sra_dw_datamad_sql_query(self, grant_references):
-        # Turn list of grant references into string (grant1, grant2, ...., grantN)
-        gr_str = "('" + "', '".join(grant_references) + "')"
 
-        # Query to retrieve facility        
-        sql_sra_dw = "SELECT \
-                    mv_application_trans.ApplicationIdentifier AS GRANTREFERENCE, \
-                    mv_application_trans.ApplicationTechnicalSummary AS OBJECTIVES, \
-                    mv_application_trans.CouncilShortName AS NEW_ADMINISTRATING_COUNCIL, \
-                    mv_outcome_facilities.RecordTitle AS FACILITY1, \
-                    mv_outcome_facilities.OutcomeSubtype AS FACILITY2, \
-                    mv_outcome_facilities.Description AS FACILITY3 \
-                    FROM mv_application_trans \
-                    LEFT OUTER JOIN  mv_outcome_facilities \
-                        ON  mv_application_trans.ApplicationIdentifier = mv_outcome_facilities.ApplicationIdentifier \
-                    WHERE mv_application_trans.ApplicationIdentifier in " + gr_str + "AND \
-                    CHAR_LENGTH(mv_application_trans.ApplicationIdentifier) < 7 AND \
-                    mv_application_trans.CouncilShortName = 'NERC' AND \
-                    (mv_application_trans.ApplicationStatus = 'ACCEPTED' \
-                    OR  mv_application_trans.ApplicationStatus = 'ACTIVE' \
-                    OR mv_application_trans.ApplicationStatus = 'CLOSED') \
+    # Updated SQL query to after Datank release DB-0084 removed tables. 
+    # This query pulls information needed by DataMAD, also renames to DataMad names.
+    def custom_databank_datamad_sql_query(self):
+        sql_databank = "SELECT \
+                    fact_application.ApplicationID AS GRANTREFERENCE, \
+                    fact_application.ApplicationID AS UKRI_ID, \
+                    fact_application.FinanceAwardID AS NERC_ID, \
+                    fact_application.ApplicationTitle AS PROJECT_TITLE, \
+                    dim_scheme.SchemeName AS SCHEME, \
+                    dim_opportunity.OpportunityName AS 'CALL', \
+                    dim_scheme.SchemeType AS GRANT_TYPE, \
+                    dim_person.FullName AS GRANT_HOLDER, \
+                    fact_application_team.TeamMemberRole AS TEAM_MEMBER_ROLE, \
+                    dim_person.Email AS EMAIL, \
+                    dim_organisation.OrganisationName AS RESEARCH_ORG, \
+                    dim_department.DepartmentName AS DEPARTMENT, \
+                    dim_application_date.ActualStartDate AS ACTUAL_START_DATE, \
+                    dim_application_date.ActualEndDate AS ACTUAL_END_DATE, \
+                    fact_application.AdministratingCouncil AS NEW_ADMINISTRATING_COUNCIL, \
+                    dim_application_date.ProposedStartDate AS PROPOSED_ST_DT, \
+                    dim_application_date.ProposedEndDate AS PROPOSED_END_DT, \
+                    fact_application.ApplicationStatus AS GRANT_STATUS, \
+                    dim_organisation.AddressLine1 AS ADDRESS1, \
+                    dim_organisation.TownOrCity AS CITY, \
+                    dim_organisation.PostCode AS POSTCODE, \
+                    fact_application.AwardedAmount AS 'AMOUNT', \
+                    dim_application_ext.RoutingClassification AS ROUTING_CLASSIFICATION, \
+                    dim_classification_area.SubjectArea AS SCIENCE_AREA, \
+                    dim_organisation.region AS GEOGRAPHIC_AREA, \
+                    dim_classification_area.ResearchTopic AS SECONDARY_CLASSIFICATION, \
+                    dim_application_ext.ApplicationSummary AS ABSTRACT, \
+                    dim_rost_facilities.ParentOrg AS FACILITY1, \
+                    dim_rost_facilities.ChildOrg AS FACILITY2, \
+                    dim_rost_facilities.ServicesProvided AS FACILITY3, \
+                    dim_rost_facilities.Impact AS FACILITY4 \
+                    FROM fact_application \
+                    LEFT OUTER JOIN  fact_application_team \
+                            ON fact_application.ApplicationSKey = fact_application_team.ApplicationSKey \
+                    LEFT OUTER JOIN  dim_scheme \
+                            ON fact_application.SchemeSKey = dim_scheme.SchemeSKey \
+                    LEFT OUTER JOIN dim_opportunity \
+                            ON fact_application.OpportunitySKey = dim_opportunity.OpportunitySKey \
+                    LEFT OUTER JOIN dim_person \
+                            ON fact_application_team.TeamMemberPersonSKey = dim_person.PersonSKey \
+                    LEFT OUTER JOIN dim_department \
+                            ON fact_application.OrganisationDepartmentSKey = dim_department.OrganisationDepartmentSKey \
+                    LEFT OUTER JOIN dim_application_date  \
+                            ON fact_application.ApplicationSKey = dim_application_date.ApplicationSKey \
+                    LEFT OUTER JOIN  dim_organisation\
+                            ON fact_application_team.TeamMemberOrganisationSKey = dim_organisation.OrganisationSKey \
+                    LEFT OUTER JOIN  dim_application_ext\
+                            ON fact_application.ApplicationSKey = dim_application_ext.ApplicationSKey \
+                    LEFT OUTER JOIN dim_classification_area \
+                            ON fact_application.PrimaryClassificationAreaSKey = dim_classification_area.ClassificationAreaSKey \
+                    LEFT OUTER JOIN fact_rost \
+                            ON fact_application.ApplicationID = fact_rost.ApplicationID \
+                    LEFT OUTER JOIN dim_rost_facilities \
+                            ON fact_rost.ROSTOutcomeSKey = dim_rost_facilities.ROSTOutcomeSKey \
+                    WHERE fact_application.AdministratingCouncil = 'NERC' AND \
+                    CHAR_LENGTH(fact_application.ApplicationID) < 7 AND \
+                    (fact_application.ApplicationStatus = 'ACCEPTED' OR \
+                    fact_application.ApplicationStatus = 'ACTIVE' OR \
+                    fact_application.ApplicationStatus = 'CLOSED')\
                     "
-         
-        return sql_sra_dw
-    
+        return sql_databank
+        
     def dictfetchall(self, cursor):
         "Return all rows from a cursor as a dict"
         columns = [col[0] for col in cursor.description]
@@ -135,10 +176,12 @@ class Command(BaseCommand):
     
     @staticmethod
     def merge_facility(df_sra_dw):
-        df_sra_dw["FACILITY"] = df_sra_dw["FACILITY1"].astype(str) + " " + df_sra_dw["FACILITY2"].astype(str) + " " + df_sra_dw["FACILITY3"].astype(str)
+        df_sra_dw["FACILITY"] = "Facility: " + df_sra_dw["FACILITY1"].astype(str) + " " + \
+            df_sra_dw["FACILITY2"].astype(str) + " Service: " + \
+            df_sra_dw["FACILITY3"].astype(str) + " Impact:" + \
+            df_sra_dw["FACILITY4"].astype(str)
 
-        # Replace "None None None" with empty string "" and delete FACILITY1, FACILITY2 and FACILITY3 AND NEW_ADMINISTRATING_COUNCIL columns
-        df_sra_dw['FACILITY'] = df_sra_dw['FACILITY'].str.replace('None None None','')
+        # Delete FACILITY1, FACILITY2 and FACILITY3 AND NEW_ADMINISTRATING_COUNCIL columns
         df_sra_dw = df_sra_dw.drop(columns=['FACILITY1', 'FACILITY2', 'FACILITY3', 'NEW_ADMINISTRATING_COUNCIL'])
 
         return df_sra_dw
@@ -255,25 +298,7 @@ class Command(BaseCommand):
             row = self.dictfetchall(cursor)
 
         # Creation of dataframe with data from SQL query
-        df_databank = pd.DataFrame(row)
-
-        # Extract unique grant references as a list
-        grant_refs = df_databank.GRANTREFERENCE.unique().tolist()
-
-        sql_command_sra_dw = self.custom_sra_dw_datamad_sql_query(grant_references=grant_refs)
-
-        with connections["sra_dw"].cursor() as cursor:
-            cursor.execute(sql_command_sra_dw)
-            row_sra_dw = self.dictfetchall(cursor)
-
-        # Creation of facility dataframe
-        df_sra_dw = pd.DataFrame(row_sra_dw)
-
-        # Merge facility entries
-        df_sra_dw = self.merge_facility(df_sra_dw)
-
-        # Join the two dataframes on grant reference
-        df = pd.merge(df_databank, df_sra_dw, on="GRANTREFERENCE")
+        df = pd.DataFrame(row)
 
         # Define lead grant preference order (PI first)
         self.define_lead_grant_priority(df)
@@ -299,6 +324,9 @@ class Command(BaseCommand):
         # Identify PIs (in case of multiple label the first one), if no PI then they are labelled in order of preference:
         # Grant-Manager, CI, Project-Lead, Project-Co-Lead-UK, etc unspecified and unknown last.
         df = self.rename_grant_ref(df)
+
+        # Merge facility entries into one FACILITY entry, instead of four.
+        df = self.merge_facility(df)
         
         # Create hide record, set all but LEAD_GRANT to hidden "1" status
         df["HIDE_RECORD"] = 1
@@ -322,7 +350,7 @@ class Command(BaseCommand):
         df["AMOUNT"] = df["AMOUNT"].astype("float")
 
         # Delete columns which aren't imported into DataMad
-        df = df.drop(["TEAM_MEMBER_ROLE","NEW_ADMINISTRATING_COUNCIL",
+        df = df.drop(["TEAM_MEMBER_ROLE",
                       "sort_column", "cumu_count","ROLE_FLAG"], axis=1) 
  
         # Create mapping to go from renamed DataBank fields to CEDA DataMad database
