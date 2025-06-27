@@ -113,6 +113,7 @@ class Command(BaseCommand):
                     dim_scheme.SchemeType AS GRANT_TYPE, \
                     dim_person.FullName AS GRANT_HOLDER, \
                     fact_application_team.TeamMemberRole AS TEAM_MEMBER_ROLE, \
+                    dim_application_ext.ApplicationTechnicalSummary AS OBJECTIVES, \
                     dim_person.Email AS EMAIL, \
                     dim_organisation.OrganisationName AS RESEARCH_ORG, \
                     dim_department.DepartmentName AS DEPARTMENT, \
