@@ -53,7 +53,7 @@ class Command(BaseCommand):
                     fact_application.ApplicationTitle AS PROJECT_TITLE, \
                     dim_scheme.SchemeName AS SCHEME, \
                     dim_opportunity.OpportunityName AS 'CALL', \
-                    dim_opportunity.FundingMode, \
+                    dim_opportunity.FundingMode AS GRANT_TYPE, \
                     CONCAT_WS(' ', dim_person.Title, dim_person.Forename, dim_person.Surname) AS GRANT_HOLDER, \
                     fact_application_team.TeamMemberRole AS TEAM_MEMBER_ROLE, \
                     dim_application_ext.ApplicationTechnicalSummary AS OBJECTIVES, \
