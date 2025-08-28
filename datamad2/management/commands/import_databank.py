@@ -53,7 +53,7 @@ class Command(BaseCommand):
                     fact_application.ApplicationTitle AS PROJECT_TITLE, \
                     dim_scheme.SchemeName AS SCHEME, \
                     dim_opportunity.OpportunityName AS 'CALL', \
-                    dim_scheme.SchemeType AS GRANT_TYPE, \
+                    dim_opportunity.FundingMode, \
                     CONCAT_WS(' ', dim_person.Title, dim_person.Forename, dim_person.Surname) AS GRANT_HOLDER, \
                     fact_application_team.TeamMemberRole AS TEAM_MEMBER_ROLE, \
                     dim_application_ext.ApplicationTechnicalSummary AS OBJECTIVES, \
@@ -103,9 +103,7 @@ class Command(BaseCommand):
                     fact_application.ApplicationStatus = 'ACTIVE' OR \
                     fact_application.ApplicationStatus = 'CLOSED') \
                     "
-                    # (fact_application.ApplicationID LIKE \\2 OR fact_application.ApplicationID LIKE \\3)) \
-                    #  OR fact_application.ApplicationID LIKE '%/3'
-
+        
         return sql_databank
     
 
@@ -165,8 +163,10 @@ class Command(BaseCommand):
         df.loc[(df["cumu_count"] == 0), "LEAD_GRANT"] = 1
 
         # Look for NCAS, NCEO in RESEARCH_ORG and set to "Y" if found in row, stays as "N" if not.
-        df.loc[df.RESEARCH_ORG == "National Centre for Atmospheric Science", "NCAS"] = 1
-        df.loc[df.RESEARCH_ORG == "National Centre for Earth Observation", "NCEO"] = 1
+        df.loc[df.RESEARCH_ORG == "National Centre for Atmospheric Science"] = 1
+        df.loc[df.RESEARCH_ORG == "NCAS"] = 1
+        df.loc[df.RESEARCH_ORG == "National Centre for Earth Observation"] = 1
+        df.loc[df.RESEARCH_ORG == "NCEO"] = 1
 
         return df
     
@@ -181,6 +181,9 @@ class Command(BaseCommand):
         df.loc[(df.LEAD_GRANT != 1), 'GRANTREFERENCE'] = df.loc[(df.LEAD_GRANT != 1), 'GRANTREFERENCE'] + \
                                                                              "_" + df.loc[(df.LEAD_GRANT != 1), 'TEAM_MEMBER_ROLE'] + \
                                                                              "_" + df.loc[(df.LEAD_GRANT != 1), 'ROLE_FLAG']
+
+        # Ensure all entries are string type
+        df["GRANTREFERENCE"] = df["GRANTREFERENCE"].astype("str")
 
         df = df.sort_values(by=['GRANTREFERENCE'])
     
@@ -267,11 +270,14 @@ class Command(BaseCommand):
         # Rename facilities column and Data management and sharing
         df_sra_dw = df_sra_dw.rename(columns={"Facilities": "FACILITY", "Data management and sharing": "SECONDARY_CLASSIFICATION"})
 
-        # Replace NaN fields with blank strings
-        df_sra_dw[['FACILITY','SECONDARY_CLASSIFICATION']] = df_sra_dw[['FACILITY','SECONDARY_CLASSIFICATION']].fillna('')
-
         # Join the two dataframes on grant reference
-        df = pd.merge(df_databank, df_sra_dw, on="GRANTREFERENCE")
+        df = pd.merge(df_databank, df_sra_dw, on="GRANTREFERENCE", how="outer")
+
+        # Remove df_databank and dr_sra_dw from memory
+        del df_databank, df_sra_dw
+
+        # Replace NaN fields with blank strings
+        df[['FACILITY','SECONDARY_CLASSIFICATION']] = df[['FACILITY','SECONDARY_CLASSIFICATION']].fillna('')
 
         # Define lead grant preference order (PI first)
         self.define_lead_grant_priority(df)
@@ -292,6 +298,9 @@ class Command(BaseCommand):
         # Delete any duplicate name rows caused by people being listed as more than one member role, prioritise keeping PI
         df = df.sort_values(by=['LEAD_GRANT'], ascending=False)
         df = df.drop_duplicates(subset=(['GRANTREFERENCE', 'GRANT_HOLDER', 'TEAM_MEMBER_ROLE', 'EMAIL']), keep='first')
+
+        # Delete random "1" GRANTREFERENCE which contains no information
+        df = df.drop(df[df['GRANTREFERENCE'] ==1].index)
 
         # Rename GRANTREFERENCE for non- LEAD_GRANT so there aren't GRANTREFERENCE DataMad database clashes. Leave the PI grant as the "parent" grant with no suffix
         # Identify PIs (in case of multiple label the first one), if no PI then they are labelled in order of preference:
@@ -380,11 +389,7 @@ class Command(BaseCommand):
                 'FACILITY': 'facility',
                 'HIDE_RECORD': 'hide_record'
                 }
-        
-        # TODO, where to all the /2s go after the query (when they do exist)
-        # TODO swap the grant field for the new FundingMode which can be found in DataBank
-        # "dim_opportunity.FundingMode"
-                
+                        
         # Checks on incoming data
         for row in tqdm(df.itertuples(), desc='Importing grants'):
             data = {}
