@@ -213,7 +213,7 @@ class ImportedGrant(models.Model):
     # grade / overall score
     overall_score = models.FloatField(null=True, blank=True)
     # Grant Type	Siebel	E.g. RM grants & fees			GRANT_TYPE
-    facility = models.CharField(max_length=1024, default='', blank=True)
+    facility = models.TextField(default='', blank=True)
     # The xls file run by RTS also contains Abstract and Objectives I presume these are from the GRANT
     grant_type = models.CharField(max_length=1024, default='', blank=True)
     # Scheme	Siebel	E.g. Standard Grant			SCHEME
@@ -257,9 +257,14 @@ class ImportedGrant(models.Model):
                                                        ("Panel A", "Panel A"),
                                                        ("Panel B", "Panel B"),
                                                        ("Panel C", "Panel C"),
+                                                       ("BODC", "BODC"),
+                                                       ("CEDA", "CEDA"),
+                                                       ("EIDC", "EIDC"),
+                                                       ("NGDC", "NGDC"),
+                                                       ("PDC", "PDC"),
                                                        ))
     # Secondary Classifications	Siebel	E.g. Co-funded 40%; Cross-Research Council: 100%			MISSING
-    secondary_classification = models.CharField(max_length=256, null=True, blank=True)
+    secondary_classification = models.TextField(null=True, blank=True)
     # Science Area	Siebel	E.g. Earth: 70% Marine:30%			MISSING
     science_area = models.CharField(max_length=256, null=True, blank=True)
     # NCAS (Yes/No)	Siebel	Y/N			NCAS
