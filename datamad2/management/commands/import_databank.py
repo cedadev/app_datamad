@@ -114,6 +114,7 @@ class Command(BaseCommand):
         # Query to retrieve facility        
         sql_sra_dw = "SELECT \
                mv_application_answer.ApplicationIdentifier AS GRANTREFERENCE, \
+               mv_application_answer.ApplicationIdentifier AS UKRI_ID, \
                mv_application_answer.QuestionName, \
                mv_application_answer.AnswerText \
                FROM mv_application_answer \
@@ -266,6 +267,9 @@ class Command(BaseCommand):
 
         # Pivot table so facilities and Data management and sharing becoming column headers
         df_sra_dw = df_sra_dw.pivot(values='AnswerText', index=['GRANTREFERENCE'], columns=["QuestionName"])
+
+        # Make the GRANTREFERENCE index a separate column and index to standard integer type
+        df_sra_dw = df_sra_dw.reset_index()
 
         # Rename facilities column and Data management and sharing
         df_sra_dw = df_sra_dw.rename(columns={"Facilities": "FACILITY", "Data management and sharing": "SECONDARY_CLASSIFICATION"})
