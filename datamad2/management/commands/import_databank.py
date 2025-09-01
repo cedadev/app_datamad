@@ -239,6 +239,14 @@ class Command(BaseCommand):
         
         return df
     
+    def special_grant_cases(self, df):
+        # Remove PI who left and ensure new PI remains associated with the grant NE/Z000270/2
+        df = df.drop(df[(df['RESEARCH_ORG'] =="University of Bristol") & 
+                        (df.GRANTREFERENCE =='NE/Z000270/2')].index)
+        
+        # Other special grant cases to go below here
+        
+        return df
 
     def handle(self, *args, **options):
         
@@ -282,6 +290,10 @@ class Command(BaseCommand):
 
         # Replace NaN fields with blank strings
         df[['FACILITY','SECONDARY_CLASSIFICATION']] = df[['FACILITY','SECONDARY_CLASSIFICATION']].fillna('')
+
+        # Special (and annoying) grant cases where the PI has left UKRI, and therefore,
+        # for some reason cannot be removed from Databank...
+        df = self.special_grant_cases(df)
 
         # Define lead grant preference order (PI first)
         self.define_lead_grant_priority(df)
@@ -402,32 +414,36 @@ class Command(BaseCommand):
 
                 value = getattr(row, source_field)
 
-                # Set ACTUAL_START_DATE / ACTUAL_END_DATE  as PROPOSED_ST_DT/ PROPOSED_END_DT if actual start and end haven't yet been set in Databank.
-                # It will update once the actual start and end date are set in Databank.
-                # This stops an issue where Jira needs a start/ end date, but the project may not start for months even though
-                # it is displayed in Datamad (also some projects also seem to start before their actual start dates as Databank takes a while to be updated,
-                # this ensures we don't miss the start dates of grants)
-                if (source_field == 'ACTUAL_START_DATE') & (value is None):
-                    value = getattr(row, 'PROPOSED_ST_DT')
-                elif (source_field == 'ACTUAL_END_DATE') & (value is None):
-                    value = getattr(row, 'PROPOSED_END_DT')
+                if row.str.contains("frfrfq"):
+                    # TODO need to deal with /1 grants to only
+                    ...
+                else:  # All other grant types
+                    # Set ACTUAL_START_DATE / ACTUAL_END_DATE  as PROPOSED_ST_DT/ PROPOSED_END_DT if actual start and end haven't yet been set in Databank.
+                    # It will update once the actual start and end date are set in Databank.
+                    # This stops an issue where Jira needs a start/ end date, but the project may not start for months even though
+                    # it is displayed in Datamad (also some projects also seem to start before their actual start dates as Databank takes a while to be updated,
+                    # this ensures we don't miss the start dates of grants)
+                    if (source_field == 'ACTUAL_START_DATE') & (value is None):
+                        value = getattr(row, 'PROPOSED_ST_DT')
+                    elif (source_field == 'ACTUAL_END_DATE') & (value is None):
+                        value = getattr(row, 'PROPOSED_END_DT')
 
-                # Ignore None value
-                if value is None:
-                    continue
+                    # Ignore None value
+                    if value is None:
+                        continue
 
-                # Ignore nan values (if they aren't strings or datetime)
-                if not isinstance(value, datetime.date):
-                        if not isinstance(value, str) and math.isnan(value):
-                                continue
-                elif source_field in ('PROPOSED_ST_DT', 'PROPOSED_END_DT', 'ACTUAL_START_DATE', 'ACTUAL_END_DATE'):
-                    # Ensure the date is converted correctly (although DataBank should always give datetime fields for the above)
+                    # Ignore nan values (if they aren't strings or datetime)
                     if not isinstance(value, datetime.date):
-                        value = parse(value, default=None).date()
+                            if not isinstance(value, str) and math.isnan(value):
+                                    continue
+                    elif source_field in ('PROPOSED_ST_DT', 'PROPOSED_END_DT', 'ACTUAL_START_DATE', 'ACTUAL_END_DATE'):
+                        # Ensure the date is converted correctly (although DataBank should always give datetime fields for the above)
+                        if not isinstance(value, datetime.date):
+                            value = parse(value, default=None).date()
 
-                if source_field not in "HIDE_RECORD":
-                    # Add to the data dict
-                    data[model_field] = value
+                    if source_field not in "HIDE_RECORD":
+                        # Add to the data dict
+                        data[model_field] = value
 
             ig = ImportedGrant(**data)
 
