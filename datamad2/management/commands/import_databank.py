@@ -97,13 +97,17 @@ class Command(BaseCommand):
                     LEFT OUTER JOIN dim_rost_facilities \
                             ON fact_rost.ROSTOutcomeSKey = dim_rost_facilities.ROSTOutcomeSKey \
                     WHERE fact_application.AdministratingCouncil = 'NERC' AND \
+                    dim_application_date.ActualEndDate > '2024-06-01' AND \
                     (CHAR_LENGTH(fact_application.ApplicationID) < 7 OR \
-                    fact_application.ApplicationID LIKE '%/2' OR  fact_application.ApplicationID LIKE '%/3') AND \
+                    (fact_application.ApplicationID LIKE '%/2' OR  fact_application.ApplicationID LIKE '%/3') \
+                    OR (fact_application.ApplicationID LIKE '%/1' AND fact_application_team.TeamMemberRole = 'Principal Investigator')) AND \
                     (fact_application.ApplicationStatus = 'ACCEPTED' OR \
                     fact_application.ApplicationStatus = 'ACTIVE' OR \
                     fact_application.ApplicationStatus = 'CLOSED') \
                     "
         
+                # AND fact_application_team.TeamMemberRole) = '')
+
         return sql_databank
     
 
@@ -273,23 +277,26 @@ class Command(BaseCommand):
 
         df_sra_dw = pd.DataFrame(row_sra_dw)
 
-        # Pivot table so facilities and Data management and sharing becoming column headers
-        df_sra_dw = df_sra_dw.pivot(values='AnswerText', index=['GRANTREFERENCE'], columns=["QuestionName"])
+        if len(df_sra_dw.index) != 0: # check if sra_dw contains entries, might not if no grants match due to future SQL query changes
+            # Pivot table so facilities and Data management and sharing becoming column headers
+            df_sra_dw = df_sra_dw.pivot(values='AnswerText', index=['GRANTREFERENCE'], columns=["QuestionName"])
 
-        # Make the GRANTREFERENCE index a separate column and index to standard integer type
-        df_sra_dw = df_sra_dw.reset_index()
+            # Make the GRANTREFERENCE index a separate column and index to standard integer type
+            df_sra_dw = df_sra_dw.reset_index()
 
-        # Rename facilities column and Data management and sharing
-        df_sra_dw = df_sra_dw.rename(columns={"Facilities": "FACILITY", "Data management and sharing": "SECONDARY_CLASSIFICATION"})
+            # Rename facilities column and Data management and sharing
+            df_sra_dw = df_sra_dw.rename(columns={"Facilities": "FACILITY", "Data management and sharing": "DATA_MANAGEMENT"})
 
-        # Join the two dataframes on grant reference
-        df = pd.merge(df_databank, df_sra_dw, on="GRANTREFERENCE", how="outer")
+            # Join the two dataframes on grant reference
+            df = pd.merge(df_databank, df_sra_dw, on="GRANTREFERENCE", how="outer")
+        else:
+            df = df_databank
 
         # Remove df_databank and dr_sra_dw from memory
         del df_databank, df_sra_dw
 
         # Replace NaN fields with blank strings
-        df[['FACILITY','SECONDARY_CLASSIFICATION']] = df[['FACILITY','SECONDARY_CLASSIFICATION']].fillna('')
+        df[['FACILITY','DATA_MANAGEMENT']] = df[['FACILITY','DATA_MANAGEMENT']].fillna('')
 
         # Special (and annoying) grant cases where the PI has left UKRI, and therefore,
         # for some reason cannot be removed from Databank...
@@ -348,7 +355,7 @@ class Command(BaseCommand):
         df = df.drop(["TEAM_MEMBER_ROLE",
                       "sort_column", "cumu_count","ROLE_FLAG"], axis=1)
         
-        # Create and populate ROUTING_CLASSIFICATION from SECONDARY_CLASSIFICATION
+        # Create and populate ROUTING_CLASSIFICATION from DATA_MANAGEMENT
         datacentre_strings = ["CEDA", "Centre for Environmental Data Analysis",
                             "BODC", "British Oceanographic Data Centre",
                             "NGDC", "National Geoscience Data Centre",
@@ -364,7 +371,7 @@ class Command(BaseCommand):
         df["ROUTING_CLASSIFICATION"] = "Unclear"
 
         for datacentre_str in datacentre_strings:
-            datacentre_idx = df["SECONDARY_CLASSIFICATION"].str.contains(datacentre_str)
+            datacentre_idx = df["DATA_MANAGEMENT"].str.contains(datacentre_str)
 
             # Map long form datacentre names to acronyms
             if len(datacentre_str)> 4:
@@ -399,7 +406,7 @@ class Command(BaseCommand):
                 'AMOUNT': 'amount_awarded',
                 'ROUTING_CLASSIFICATION': 'routing_classification',
                 'SCIENCE_AREA': 'science_area',
-                'SECONDARY_CLASSIFICATION': 'secondary_classification',
+                'DATA_MANAGEMENT': 'data_management',
                 'ABSTRACT': 'abstract',
                 'OBJECTIVES': 'objectives',
                 'FACILITY': 'facility',
@@ -409,14 +416,55 @@ class Command(BaseCommand):
         # Checks on incoming data
         for row in tqdm(df.itertuples(), desc='Importing grants'):
             data = {}
+            grant_ref = row.GRANTREFERENCE
+
+            # Check if grant already exists
+            try:
+                existing_G = Grant.objects.get(grant_ref=grant_ref)
+                try:
+                    existing_ig = existing_G.importedgrant
+                    grant_missing_flag = False  
+                except:
+                    existing_G = None
+                    existing_ig = None
+                    grant_missing_flag = True
+                    pass
+            except:
+                existing_G = None
+                existing_ig = None
+                grant_missing_flag = True
+                pass
 
             for source_field, model_field in mapping.items():
-
                 value = getattr(row, source_field)
 
-                if row.str.contains("frfrfq"):
-                    # TODO need to deal with /1 grants to only
-                    ...
+                # Check GRANTREFERENCE and UKRI_ID for /1 grants which originated from Siebel, i.e. UKRI_ID >7
+                if row.GRANTREFERENCE.endswith("/1") & ((existing_ig != None) & (grant_missing_flag ==True)):
+                    # Special case to deal with /1 grants only, 
+                    # don't want to overwrite previously imported Siebel data
+                    # Only update grant status and dates
+
+                    # Import previous data so that "data" dict is complete and there is no chance of 
+                    # existing data being overwritten with "None" or similar
+                    existing_ig = existing_ig.__dict__
+                    existing_G = existing_G.__dict__
+
+                    for orig, django_orm in mapping.items():
+                        if django_orm not in ("hide_record", "parent_grant"):
+                            try:
+                                django_entry = existing_G[django_orm]
+                            except:
+                                try:
+                                    django_entry = existing_ig[django_orm]
+                                except:
+                                    pass
+
+                            data[django_orm] = django_entry
+
+                    # Write in any new data (dates and grant status only, for now)
+                    if source_field in ('PROPOSED_ST_DT', 'PROPOSED_END_DT', 'ACTUAL_START_DATE', 'ACTUAL_END_DATE', 'GRANT_STATUS'):
+                        data[model_field] = value
+
                 else:  # All other grant types
                     # Set ACTUAL_START_DATE / ACTUAL_END_DATE  as PROPOSED_ST_DT/ PROPOSED_END_DT if actual start and end haven't yet been set in Databank.
                     # It will update once the actual start and end date are set in Databank.

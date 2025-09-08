@@ -264,7 +264,8 @@ class ImportedGrant(models.Model):
                                                        ("PDC", "PDC"),
                                                        ))
     # Secondary Classifications	Siebel	E.g. Co-funded 40%; Cross-Research Council: 100%			MISSING
-    secondary_classification = models.TextField(null=True, blank=True)
+    secondary_classification = models.CharField(max_length=256, null=True, blank=True)
+    data_management = models.TextField(null=True, blank=True)
     # Science Area	Siebel	E.g. Earth: 70% Marine:30%			MISSING
     science_area = models.CharField(max_length=256, null=True, blank=True)
     # NCAS (Yes/No)	Siebel	Y/N			NCAS
