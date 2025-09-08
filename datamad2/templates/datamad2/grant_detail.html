@@ -92,6 +92,12 @@
                         <td colspan="2">{{ imported_grant.objectives|read_more:50|default_if_none:"N/A" }}</td>
                     </tr>
                     <tr>
+                        <th>Data Management</th>
+                    </tr>
+                    <tr>
+                        <td colspan="2">{{ imported_grant.data_management|read_more:50|default_if_none:"N/A" }}</td>
+                    </tr>
+                    <tr>
                         <th>Amount Awarded</th>
                         <td> £ {{ imported_grant.amount_awarded|default_if_none:"N/A"| intcomma }} </td>
                     </tr>

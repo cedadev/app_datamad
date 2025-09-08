@@ -180,6 +180,22 @@
                         </tr>
 
                         <tr>
+                            {% if 'data_management' in things %}
+                                <th class="text-danger">Data Management</th>
+                            {% else %}
+                                <th>Data Management</th>
+                            {% endif %}
+                        </tr>
+                        <tr>
+                            {% if 'data_management' in things %}
+                                <td class="text-danger"
+                                    colspan="2"> {{ imported_grant.data_management|read_more:50|default_if_none:"N/A" }} </td>
+                            {% else %}
+                                <td colspan="2">{{ imported_grant.data_management|read_more:50|default_if_none:"N/A" }} </td>
+                            {% endif %}
+                        </tr>
+
+                        <tr>
                             {% if 'amount_awarded' in things %}
                                 <th class="text-danger">Amount Awarded</th>
                                 <td class="text-danger">
