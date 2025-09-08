@@ -368,7 +368,7 @@ class Command(BaseCommand):
                               "Polar Data Centre" : "PDC",
                               "Environmental Information Data Centre": "EIDC"}
         
-        df["ROUTING_CLASSIFICATION"] = "Unclear"
+        df["ROUTING_CLASSIFICATION"] = None
 
         for datacentre_str in datacentre_strings:
             datacentre_idx = df["DATA_MANAGEMENT"].str.contains(datacentre_str)
