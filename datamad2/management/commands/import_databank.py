@@ -97,7 +97,6 @@ class Command(BaseCommand):
                     LEFT OUTER JOIN dim_rost_facilities \
                             ON fact_rost.ROSTOutcomeSKey = dim_rost_facilities.ROSTOutcomeSKey \
                     WHERE fact_application.AdministratingCouncil = 'NERC' AND \
-                    fact_application.ApplicationID = 'NE/W008289/1' AND \
                     dim_application_date.ActualEndDate > '2024-06-01' AND \
                     (fact_application.ApplicationStatus = 'ACCEPTED' OR \
                     fact_application.ApplicationStatus = 'ACTIVE' OR \
