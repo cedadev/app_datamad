@@ -98,14 +98,17 @@ class Command(BaseCommand):
                             ON fact_rost.ROSTOutcomeSKey = dim_rost_facilities.ROSTOutcomeSKey \
                     WHERE fact_application.AdministratingCouncil = 'NERC' AND \
                     dim_application_date.ActualEndDate > '2024-06-01' AND \
-                    (CHAR_LENGTH(fact_application.ApplicationID) < 7 OR \
-                    (fact_application.ApplicationID LIKE '%/2' OR  fact_application.ApplicationID LIKE '%/3') \
-                    OR (fact_application.ApplicationID LIKE '%/1' AND fact_application_team.TeamMemberRole = 'Principal Investigator')) AND \
                     (fact_application.ApplicationStatus = 'ACCEPTED' OR \
                     fact_application.ApplicationStatus = 'ACTIVE' OR \
                     fact_application.ApplicationStatus = 'CLOSED') \
                     "
         
+
+                    # dim_application_date.ActualEndDate > '2024-06-01' AND \
+                    # (CHAR_LENGTH(fact_application.ApplicationID) < 7 OR \
+                    # (fact_application.ApplicationID LIKE '%/2' OR  fact_application.ApplicationID LIKE '%/3') \
+                    # OR (fact_application.ApplicationID LIKE '%/1' AND fact_application_team.TeamMemberRole = 'Principal Investigator')) AND \
+
                 # AND fact_application_team.TeamMemberRole) = '')
 
         return sql_databank
@@ -292,6 +295,9 @@ class Command(BaseCommand):
         else:
             df = df_databank
 
+            # Add missing columns:
+            df[['FACILITY','DATA_MANAGEMENT']] = ''
+
         # Remove df_databank and dr_sra_dw from memory
         del df_databank, df_sra_dw
 
@@ -423,7 +429,9 @@ class Command(BaseCommand):
                 existing_G = Grant.objects.get(grant_ref=grant_ref)
                 try:
                     existing_ig = existing_G.importedgrant
-                    grant_missing_flag = False  
+                    grant_missing_flag = False
+                    existing_G = existing_G.__dict__
+                    existing_ig = existing_ig.__dict__
                 except:
                     existing_G = None
                     existing_ig = None
@@ -439,16 +447,13 @@ class Command(BaseCommand):
                 value = getattr(row, source_field)
 
                 # Check GRANTREFERENCE and UKRI_ID for /1 grants which originated from Siebel, i.e. UKRI_ID >7
-                if row.GRANTREFERENCE.endswith("/1") & ((existing_ig != None) & (grant_missing_flag ==True)):
+                if row.GRANTREFERENCE.endswith("/1") & ((existing_ig != None) & (grant_missing_flag ==False)):
                     # Special case to deal with /1 grants only, 
                     # don't want to overwrite previously imported Siebel data
                     # Only update grant status and dates
 
                     # Import previous data so that "data" dict is complete and there is no chance of 
                     # existing data being overwritten with "None" or similar
-                    existing_ig = existing_ig.__dict__
-                    existing_G = existing_G.__dict__
-
                     for orig, django_orm in mapping.items():
                         if django_orm not in ("hide_record", "parent_grant"):
                             try:
