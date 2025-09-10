@@ -97,6 +97,7 @@ class Command(BaseCommand):
                     LEFT OUTER JOIN dim_rost_facilities \
                             ON fact_rost.ROSTOutcomeSKey = dim_rost_facilities.ROSTOutcomeSKey \
                     WHERE fact_application.AdministratingCouncil = 'NERC' AND \
+                    fact_application.ApplicationID = 'NE/W008289/1' AND \
                     dim_application_date.ActualEndDate > '2024-06-01' AND \
                     (fact_application.ApplicationStatus = 'ACCEPTED' OR \
                     fact_application.ApplicationStatus = 'ACTIVE' OR \
@@ -443,6 +444,23 @@ class Command(BaseCommand):
                 grant_missing_flag = True
                 pass
 
+            if row.GRANTREFERENCE.endswith("/1") & ((existing_ig != None) & (grant_missing_flag ==False)):
+                # Special case to deal with /1 grants only, 
+
+                # Import previous data so that "data" dict is complete and there is no chance of 
+                # existing data being overwritten with "None" or similar
+                for orig, django_orm in mapping.items():
+                    if django_orm not in ("hide_record", "parent_grant", 'grant_status'):
+                        try:
+                            django_entry = existing_G[django_orm]
+                        except:
+                            try:
+                                django_entry = existing_ig[django_orm]
+                            except:
+                                pass
+
+                        data[django_orm] = django_entry
+
             for source_field, model_field in mapping.items():
                 value = getattr(row, source_field)
 
@@ -452,22 +470,8 @@ class Command(BaseCommand):
                     # don't want to overwrite previously imported Siebel data
                     # Only update grant status and dates
 
-                    # Import previous data so that "data" dict is complete and there is no chance of 
-                    # existing data being overwritten with "None" or similar
-                    for orig, django_orm in mapping.items():
-                        if django_orm not in ("hide_record", "parent_grant"):
-                            try:
-                                django_entry = existing_G[django_orm]
-                            except:
-                                try:
-                                    django_entry = existing_ig[django_orm]
-                                except:
-                                    pass
-
-                            data[django_orm] = django_entry
-
                     # Write in any new data (dates and grant status only, for now)
-                    if source_field in ('PROPOSED_ST_DT', 'PROPOSED_END_DT', 'ACTUAL_START_DATE', 'ACTUAL_END_DATE', 'GRANT_STATUS'):
+                    if source_field in ('ROUTING_CLASSIFICATION', 'PROPOSED_ST_DT', 'PROPOSED_END_DT', 'ACTUAL_START_DATE', 'ACTUAL_END_DATE', 'GRANT_STATUS'):
                         data[model_field] = value
 
                 else:  # All other grant types
@@ -509,7 +513,6 @@ class Command(BaseCommand):
                 existing_ig = existing_G.importedgrant
                 changed_fields = list(filter(
                     lambda field: getattr(existing_ig, field, None) != getattr(ig, field, None), model_fields))
-
                 if len(changed_fields) > 0:
                     ig.save()
 
