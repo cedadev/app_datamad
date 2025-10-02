@@ -469,9 +469,12 @@ class Command(BaseCommand):
                     # don't want to overwrite previously imported Siebel data
                     # Only update grant status and dates
 
-                    # Write in any new data (dates and grant status only, for now)
-                    if source_field in ('ROUTING_CLASSIFICATION', 'PROPOSED_ST_DT', 'PROPOSED_END_DT', 'ACTUAL_START_DATE', 'ACTUAL_END_DATE', 'GRANT_STATUS'):
-                        data[model_field] = value
+                    # Write in any new data (dates, grant status and facility (if it isn't empty in DataBank) only, for now)
+                    if source_field in ('ROUTING_CLASSIFICATION', 'PROPOSED_ST_DT', 'PROPOSED_END_DT', 'ACTUAL_START_DATE', 'ACTUAL_END_DATE', 'GRANT_STATUS', 'FACILITY'):
+                        if (source_field == 'FACILITY') & (value==""):
+                            ... # Don't update in this case as new facility entry in DataBank is empty
+                        else:
+                            data[model_field] = value
 
                 else:  # All other grant types
                     # Set ACTUAL_START_DATE / ACTUAL_END_DATE  as PROPOSED_ST_DT/ PROPOSED_END_DT if actual start and end haven't yet been set in Databank.
