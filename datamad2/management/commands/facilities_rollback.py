@@ -30,6 +30,8 @@ class Command(BaseCommand):
             # options["rollback"] = datetime.datetime(2025, 9, 10, 9, 9)
             options["rollback_date"] = datetime.datetime(2025, 9, 10, 9, 7, tzinfo=datetime.timezone.utc)
 
+            #Sept. 10, 2025, 9:09 a.m.
+
             # (2025, 9, 10, 9, 7, 4, 856784, tzinfo=datetime.timezone.utc)
         else:
             # Change rollback into a datetime
@@ -39,23 +41,25 @@ class Command(BaseCommand):
             # Default field to rollback
             options["rollback_field"] = ["facility"]
             
-        siebel_grants = Grant.objects.filter(grant_ref__contains='/1')
-        siebel_grants = siebel_grants.objects.imported_grant_set.first().filter(actual_end_date__gt=datetime.datetime(2024, 5, 31, tzinfo=datetime.timezone.utc))
+
+        siebel_grants = ImportedGrant.objects.filter(grant_ref__contains='/1').filter(actual_end_date__gt=datetime.datetime(2024, 5, 31, tzinfo=datetime.timezone.utc))
         
-        for siebel_grant in siebel_grants:
-            current_ig = siebel_grant.importedgrant
+        for current_ig in siebel_grants:
+            siebel_grant = current_ig.grant
             ig_history = siebel_grant.importedgrant_set.filter(creation_date__lt=options["rollback_date"]).order_by('creation_date').reverse()
-
-            previous_ig = ig_history[0]
-
-            for field in options["rollback_field"]:
-                current_ig.facility = getattr(previous_ig, field)
             
-            data = model_to_dict(current_ig)
+            if ig_history:
+            
+                previous_ig = ig_history[0]
 
-            # Remove any fields not needed in the new model:
-            for delete_str in [""]:
-                data.pop(delete_str)
+                for field in options["rollback_field"]:
+                    current_ig.facility = getattr(previous_ig, field)
+                
+                data = model_to_dict(current_ig)
 
-            new_ig = ImportedGrant(**data)
-            new_ig.save()
+                # Remove any fields not needed in the new model:
+                for delete_str in ["id", "grant"]:
+                    data.pop(delete_str)
+
+                new_ig = ImportedGrant(**data)
+                new_ig.save()
