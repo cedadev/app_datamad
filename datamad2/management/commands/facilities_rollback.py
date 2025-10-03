@@ -51,15 +51,15 @@ class Command(BaseCommand):
 
                 # Look into efficiency with "-creation_date" vs reverse
                 # Think about replacing previous_ig = ig_history[0] with .first() on line below
-                ig_history = siebel_grant.importedgrant_set.filter(creation_date__lt=options["rollback_date"]).order_by('creation_date').reverse().first()
+                ig_history = siebel_grant.importedgrant_set.filter(creation_date__lt=options["rollback_date"]).order_by('creation_date').reverse()
                 
                 if ig_history:
                 
                     previous_ig = ig_history[0]
 
                     for field in options["rollback_field"]:
-                        # This is silly current_ig.facility for every field?!
-                        setattr(current_ig, field) = getattr(previous_ig, field) # Not ideal, as theoretically you could break the internal behavior of the object after setting the new attribute. But it works in a very clumsy way...
+                        previous_value = getattr(previous_ig, field)
+                        setattr(current_ig, field, previous_value) # Not ideal, as theoretically you could break the internal behavior of the object after setting the new attribute. But it works in a very clumsy way...
                     
                     data = model_to_dict(current_ig)
 
