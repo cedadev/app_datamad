@@ -27,7 +27,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options["rollback_date"] is None:
             # Default rollback option
-            options["rollback_date"] = datetime.datetime(2025, 9, 10, 9, 7, 4, tzinfo=datetime.timezone.utc)
+            # options["rollback_date"] = datetime.datetime(2025, 9, 10, 9, 7, 4, tzinfo=datetime.timezone.utc)
+            options["rollback_date"] = datetime.datetime(2025, 8, 10, 12, 23, 00, tzinfo=datetime.timezone.utc)
         else:
             # Change rollback into a datetime
             options["rollback_date"] = datetime.datetime.strptime(options['rollback_date'], '%Y%m%d').date()
