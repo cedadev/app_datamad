@@ -27,7 +27,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options["rollback_date"] is None:
             # Default rollback option
-            options["rollback_date"] = datetime.datetime(2025, 9, 10, 9, 7, 4, tzinfo=datetime.timezone.utc) # Prod
+            options["rollback_date"] = datetime.datetime(2025,   9, 10, 7, 0 , 00, tzinfo=datetime.timezone.utc) # Prod
             # options["rollback_date"] = datetime.datetime(2025, 8, 10, 12, 23, 00, tzinfo=datetime.timezone.utc) # Staging
             # options["rollback_date"] = datetime.datetime(2025, 10, 3, 12, 00, 00, tzinfo=datetime.timezone.utc) # MP local
         else:
@@ -64,6 +64,7 @@ class Command(BaseCommand):
                     
                         for field in options["rollback_field"]:
                             previous_value = getattr(previous_ig, field)
+                            # previous_value = "TEST_MP"
                             setattr(current_ig, field, previous_value) # Not ideal, as theoretically you could break the internal behavior of the object after setting the new attribute. But it works in a very clumsy way...
                         
                         data = model_to_dict(current_ig)
