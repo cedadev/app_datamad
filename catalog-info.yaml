@@ -19,7 +19,7 @@ metadata:
       title: "DataMAD Service"
       icon: externalLink
 spec:
-  owner: user:default/developers
+  owner: group:default/developers
   domain: domain:default/ceda-systems
   lifecycle: production
 
@@ -63,7 +63,7 @@ metadata:
     - "host:unknown"
 spec:
   type: database
-  owner: user:default/developers
+  owner: group:default/developers
   domain: domain:default/ceda-systems
   system: system:default/DataMAD
   lifecycle: production
@@ -82,7 +82,7 @@ metadata:
     - "host:db6"
 spec:
   type: database
-  owner: user:default/developers
+  owner: group:default/developers
   system: system:default/ceda-systems
   dependsOn: 
     - component:default/db6
