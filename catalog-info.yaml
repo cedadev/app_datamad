@@ -21,41 +21,6 @@ spec:
 
 ---
 apiVersion: backstage.io/v1alpha1
-kind: Resource
-metadata:
-  name: elasticsearch-indices
-  description: The elasticsearch index (TODO) used for...
-  links:
-    - url: https://es9.ceda.ac.uk:9200/_cat/indices?v
-      title: "Elasticsearch Indices"
-      icon: externalLink
-spec:
-  type: database
-  owner: user:default/rhys-evans
-  domain: domain:default/ceda-systems
-  system: system:default/ceda-systems
-    dependencyOf: 
-    - component:default/DataMAD
-  lifecycle: production
-
----
-apiVersion: backstage.io/v1alpha1
-kind: Resource
-metadata:
-  name: DataMAD-database
-  description: The DataMAD Database
-spec:
-  type: database
-  owner: user:default/aharwood
-  system: system:default/ceda-systems
-  dependsOn: 
-    - component:default/db6
-  dependencyOf: 
-    - component:default/DataMAD
-  lifecycle: production
-
----
-apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: app-datamad
@@ -73,4 +38,35 @@ spec:
     - component:default/datamad-deploy
   lifecycle: production
 
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: elasticsearch-indices
+  description: The elasticsearch index (TODO) used for...
+  links:
+    - url: https://es9.ceda.ac.uk:9200/_cat/indices?v
+      title: "Elasticsearch Indices"
+      icon: externalLink
+spec:
+  type: database
+  owner: user:default/rhys-evans
+  domain: domain:default/ceda-systems
+  system: system:default/DataMAD
+  lifecycle: production
 
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: DataMAD-database
+  description: The DataMAD Database
+spec:
+  type: database
+  owner: user:default/aharwood
+  system: system:default/ceda-systems
+  dependsOn: 
+    - component:default/db6
+  dependencyOf: 
+    - component:default/DataMAD
+  lifecycle: production
