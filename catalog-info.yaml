@@ -10,7 +10,7 @@ metadata:
     - "manager:matthew-paice"
     - "deputy-manager:sam-pepler"
     - "review:passed"
-    - "host:rancher.jasmin/production"
+    - "host:rancher-jasmin-production"
   links: 
     - url: https://cedadev.github.io/datamad2/
       title: "DataMAD user documentation"
