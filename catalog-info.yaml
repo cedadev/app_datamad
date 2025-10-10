@@ -5,17 +5,21 @@ metadata:
   name: DataMAD
   description: "DataMAD is a NERC system for managing NERC grants and data archiving amongst the NERC datacentres."
   tags:
-    - "priority:medium"
+    - "priority:high"
     - "visibility:public"
     - "manager:matthew-paice"
     - "deputy-manager:sam-pepler"
     - "review:passed"
+    - "host:rancher.jasmin/production"
   links: 
     - url: https://cedadev.github.io/datamad2/
       title: "DataMAD user documentation"
       icon: externalLink
+    - url: https://datamad.ceda.ac.uk
+      title: "DataMAD Service"
+      icon: externalLink
 spec:
-  owner: user:default/mathai
+  owner: user:default/developers
   domain: domain:default/ceda-systems
   lifecycle: production
 
@@ -25,9 +29,12 @@ kind: Component
 metadata:
   name: app-datamad
   description: "Cluster architecture for Rancher Kubernetes clusters, including load-balancing and ingress details."
-  annotations:
-    backstage.io/techdocs-ref: dir:.
-    rancher.io/server-url: https://rancher.jasmin.ac.uk
+  tags:
+    - "priority:high"
+    - "visibility:public"
+    - "manager:matthew-paice"
+    - "deputy-manager:sam-pepler"
+    - "review:passed"
 spec:
   type: kubernetes
   owner: group:default/developers
@@ -48,9 +55,15 @@ metadata:
     - url: https://es9.ceda.ac.uk:9200/_cat/indices?v
       title: "Elasticsearch Indices"
       icon: externalLink
+  tags:
+    - "priority:high"
+    - "visibility:public"
+    - "manager:rhys-evans"
+    - "review:passed"
+    - "host:unknown"
 spec:
   type: database
-  owner: user:default/rhys-evans
+  owner: user:default/developers
   domain: domain:default/ceda-systems
   system: system:default/DataMAD
   lifecycle: production
@@ -61,9 +74,15 @@ kind: Resource
 metadata:
   name: DataMAD-database
   description: The DataMAD Database
+  tags:
+    - "priority:high"
+    - "visibility:public"
+    - "manager:andrew-harwood"
+    - "review:passed"
+    - "host:db6"
 spec:
   type: database
-  owner: user:default/aharwood
+  owner: user:default/developers
   system: system:default/ceda-systems
   dependsOn: 
     - component:default/db6
