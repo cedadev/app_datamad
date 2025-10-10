@@ -10,6 +10,10 @@ metadata:
     - "manager:matthew-paice"
     - "deputy-manager:sam-pepler"
     - "review:passed"
+  links: 
+    - url: https://cedadev.github.io/datamad2/
+      title: "DataMAD user documentation"
+      icon: externalLink
 spec:
   owner: user:default/mathai
   domain: domain:default/ceda-systems
