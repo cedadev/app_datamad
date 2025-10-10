@@ -1,0 +1,10 @@
+site_name: 'DataMAD'
+site_description: 'Documentation for DataMAD'
+
+nav:
+  - Home: index.md
+
+plugins:
+  - techdocs-core
+
+docs_dir: "service-docs"

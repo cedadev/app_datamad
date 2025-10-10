@@ -1,0 +1,72 @@
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: DataMAD
+  description: "DataMAD is a NERC system for managing NERC grants and data archiving amongst the NERC datacentres."
+  tags:
+    - "priority:medium"
+    - "visibility:public"
+    - "manager:matthew-paice"
+    - "deputy-manager:sam-pepler"
+    - "review:passed"
+spec:
+  owner: user:default/mathai
+  domain: domain:default/ceda-systems
+  lifecycle: production
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: elasticsearch-indices
+  description: The elasticsearch index (TODO) used for...
+  links:
+    - url: https://es9.ceda.ac.uk:9200/_cat/indices?v
+      title: "Elasticsearch Indices"
+      icon: externalLink
+spec:
+  type: database
+  owner: user:default/rhys-evans
+  domain: domain:default/ceda-systems
+  system: system:default/ceda-systems
+    dependencyOf: 
+    - component:default/DataMAD
+  lifecycle: production
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: DataMAD-database
+  description: The DataMAD Database
+spec:
+  type: database
+  owner: user:default/aharwood
+  system: system:default/ceda-systems
+  dependsOn: 
+    - component:default/db6
+  dependencyOf: 
+    - component:default/DataMAD
+  lifecycle: production
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: app-datamad
+  description: "Cluster architecture for Rancher Kubernetes clusters, including load-balancing and ingress details."
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+    rancher.io/server-url: https://rancher.jasmin.ac.uk
+spec:
+  type: kubernetes
+  owner: group:default/developers
+  system: system:default/DataMAD
+  dependencyOf: 
+    - component:default/DataMAD
+  dependsOn:
+    - component:default/datamad-deploy
+  lifecycle: production
+
+
