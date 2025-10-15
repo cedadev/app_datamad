@@ -37,17 +37,17 @@ metadata:
   name: app-datamad
   description: "Cluster architecture for Rancher Kubernetes clusters, including load-balancing and ingress details."
   tags:
-    - "priority: high"
-    - "visibility: public"
-    - "manager: matthew-paice"
-    - "deputy-manager: sam-pepler"
-    - "review: passed"
+    - "priority:high"
+    - "visibility:public"
+    - "manager:matthew-paice"
+    - "deputy-manager:sam-pepler"
+    - "review:passed"
 spec:
   type: kubernetes
   owner: group:default/developers
   system: system:default/DataMAD
   dependencyOf: 
-    - component:default/DataMAD
+    - system:default/DataMAD
   dependsOn:
     - component:default/datamad-deploy
     - component:default/app-datamad
@@ -65,12 +65,12 @@ metadata:
   name: elasticsearch-index-datamad
   description: The elasticsearch index (datamad2-haystack) used for Django Haystack to store and quickly retrieve DataMAD search results
   tags:
-    - "priority: high"
-    - "visibility: public"
-    - "manager: matthew-paice"
-    - "deputy-manager: rhys-evans"
-    - "review: passed"
-    - "host: unknown"
+    - "priority:high"
+    - "visibility:public"
+    - "manager:matthew-paice"
+    - "deputy-manager:rhys-evans"
+    - "review:passed"
+    - "host:unknown"
 spec:
   type: database
   owner: group:default/developers
@@ -88,11 +88,11 @@ metadata:
   name: DataMAD-database
   description: The DataMAD Database
   tags:
-    - "priority: high"
-    - "visibility: public"
-    - "manager: andrew-harwood"
-    - "review: passed"
-    - "host: db6"
+    - "priority:high"
+    - "visibility:public"
+    - "manager:andrew-harwood"
+    - "review:passed"
+    - "host:db6"
 spec:
   type: database
   owner: group:default/developers
