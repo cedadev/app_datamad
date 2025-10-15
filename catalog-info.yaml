@@ -51,7 +51,7 @@ spec:
   dependsOn:
     - component:default/datamad-deploy
     - component:default/app-datamad
-    - component:datamad-deploy
+    - component:default/datamad-deploy
     - component:default/elasticsearch-index-datamad
     - component:default/DataMAD-database
     - component:default/databank-schema
@@ -76,7 +76,7 @@ spec:
   owner: group:default/developers
   system: system:default/DataMAD
   lifecycle: production
-  depends on:
+  dependsOn:
     - system:default/elasticsearch-deployment
   dependencyOf: 
     - system:default/DataMAD
