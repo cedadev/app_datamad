@@ -29,6 +29,8 @@ spec:
     - component:default/datamad-deploy
     - component:default/databank-schema
     - component:default/sra_dw-schema
+    - system:default/rancher-prod
+    - system:default/rancher-staging
 
 ---
 apiVersion: backstage.io/v1alpha1
@@ -49,7 +51,6 @@ spec:
   dependencyOf: 
     - system:default/DataMAD
   dependsOn:
-    - component:default/datamad-deploy
     - component:default/datamad-deploy
     - component:elasticsearch-index-datamad
     - component:DataMAD-database
