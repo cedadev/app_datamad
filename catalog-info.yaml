@@ -24,11 +24,11 @@ spec:
   lifecycle: production
   dependsOn:
     - component:default/app-datamad
-    - component:datamad-deploy
-    - component:elasticsearch-index-datamad
-    - component:DataMAD-database
-    - component:databank-schema
-    - component:sra_dw-schema
+    - component:default/datamad-deploy
+    - component:default/elasticsearch-index-datamad
+    - component:default/DataMAD-database
+    - component:default/databank-schema
+    - component:default/sra_dw-schema
 
 ---
 apiVersion: backstage.io/v1alpha1
@@ -52,10 +52,10 @@ spec:
     - component:default/datamad-deploy
     - component:default/app-datamad
     - component:datamad-deploy
-    - component:elasticsearch-index-datamad
-    - component:DataMAD-database
-    - component:databank-schema
-    - component:sra_dw-schema
+    - component:default/elasticsearch-index-datamad
+    - component:default/DataMAD-database
+    - component:default/databank-schema
+    - component:default/sra_dw-schema
   lifecycle: production
 
 ---
