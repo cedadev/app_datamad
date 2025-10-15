@@ -50,10 +50,9 @@ spec:
     - system:default/DataMAD
   dependsOn:
     - component:default/datamad-deploy
-    - component:default/app-datamad
     - component:default/datamad-deploy
-    - component:default/elasticsearch-index-datamad
-    - component:default/DataMAD-database
+    - component:elasticsearch-index-datamad
+    - component:DataMAD-database
     - component:default/databank-schema
     - component:default/sra_dw-schema
   lifecycle: production
