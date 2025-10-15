@@ -24,8 +24,8 @@ spec:
   lifecycle: production
   dependsOn:
     - component:app-datamad
-    - component:elasticsearch-index-datamad
-    - component:DataMAD-database
+    - resource:default/elasticsearch-index-datamad
+    - resource:default/DataMAD-database
     - component:default/datamad-deploy
     - component:default/databank-schema
     - component:default/sra_dw-schema
@@ -44,6 +44,8 @@ metadata:
     - "manager:matthew-paice"
     - "deputy-manager:sam-pepler"
     - "review:passed"
+  annotations:
+    backstage.io/techdocs-ref: dir:.
 spec:
   type: kubernetes
   owner: group:default/developers
@@ -52,8 +54,8 @@ spec:
     - system:default/DataMAD
   dependsOn:
     - component:default/datamad-deploy
-    - component:elasticsearch-index-datamad
-    - component:DataMAD-database
+    - resource:default/elasticsearch-index-datamad
+    - resource:default/DataMAD-database
     - component:default/databank-schema
     - component:default/sra_dw-schema
   lifecycle: production
