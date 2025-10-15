@@ -22,6 +22,13 @@ spec:
   owner: group:default/developers
   domain: domain:default/ceda-systems
   lifecycle: production
+  dependsOn:
+    - component: default/app-datamad
+    - component: datamad-deploy
+    - component: elasticsearch-index-datamad
+    - component: DataMAD-database
+    - component: databank-schema
+    - component: sra_dw-schema
 
 ---
 apiVersion: backstage.io/v1alpha1
@@ -42,31 +49,37 @@ spec:
   dependencyOf: 
     - component:default/DataMAD
   dependsOn:
-    - component:default/datamad-deploy
+    - component: default/datamad-deploy
+    - component: default/app-datamad
+    - component: datamad-deploy
+    - component: elasticsearch-index-datamad
+    - component: DataMAD-database
+    - component: databank-schema
+    - component: sra_dw-schema
   lifecycle: production
 
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Resource
 metadata:
-  name: elasticsearch-indices
-  description: The elasticsearch index (TODO) used for...
-  links:
-    - url: https://es9.ceda.ac.uk:9200/_cat/indices?v
-      title: "Elasticsearch Indices"
-      icon: externalLink
+  name: elasticsearch-index-datamad
+  description: The elasticsearch index (datamad2-haystack) used for Django Haystack to store and quickly retrieve DataMAD search results
   tags:
-    - "priority:high"
-    - "visibility:public"
-    - "manager:rhys-evans"
-    - "review:passed"
-    - "host:unknown"
+    - "priority: high"
+    - "visibility: public"
+    - "manager: matthew-paice"
+    - "deputy-manager: rhys-evans"
+    - "review: passed"
+    - "host: unknown"
 spec:
   type: database
   owner: group:default/developers
-  domain: domain:default/ceda-systems
   system: system:default/DataMAD
   lifecycle: production
+  depends on:
+    - system: default/elasticsearch-deployment
+  dependencyOf: 
+    - system: default/DataMAD
 
 ---
 apiVersion: backstage.io/v1alpha1
@@ -75,17 +88,17 @@ metadata:
   name: DataMAD-database
   description: The DataMAD Database
   tags:
-    - "priority:high"
-    - "visibility:public"
-    - "manager:andrew-harwood"
-    - "review:passed"
-    - "host:db6"
+    - "priority: high"
+    - "visibility: public"
+    - "manager: andrew-harwood"
+    - "review: passed"
+    - "host: db6"
 spec:
   type: database
   owner: group:default/developers
-  system: system:default/ceda-systems
+  system: system:default/DataMAD
   dependsOn: 
-    - component:default/db6
+    - component: default/db6
   dependencyOf: 
-    - component:default/DataMAD
+    - system: default/DataMAD
   lifecycle: production
