@@ -23,12 +23,12 @@ spec:
   domain: domain:default/ceda-systems
   lifecycle: production
   dependsOn:
-    - component: default/app-datamad
-    - component: datamad-deploy
-    - component: elasticsearch-index-datamad
-    - component: DataMAD-database
-    - component: databank-schema
-    - component: sra_dw-schema
+    - component:default/app-datamad
+    - component:datamad-deploy
+    - component:elasticsearch-index-datamad
+    - component:DataMAD-database
+    - component:databank-schema
+    - component:sra_dw-schema
 
 ---
 apiVersion: backstage.io/v1alpha1
@@ -37,11 +37,11 @@ metadata:
   name: app-datamad
   description: "Cluster architecture for Rancher Kubernetes clusters, including load-balancing and ingress details."
   tags:
-    - "priority:high"
-    - "visibility:public"
-    - "manager:matthew-paice"
-    - "deputy-manager:sam-pepler"
-    - "review:passed"
+    - "priority: high"
+    - "visibility: public"
+    - "manager: matthew-paice"
+    - "deputy-manager: sam-pepler"
+    - "review: passed"
 spec:
   type: kubernetes
   owner: group:default/developers
@@ -49,13 +49,13 @@ spec:
   dependencyOf: 
     - component:default/DataMAD
   dependsOn:
-    - component: default/datamad-deploy
-    - component: default/app-datamad
-    - component: datamad-deploy
-    - component: elasticsearch-index-datamad
-    - component: DataMAD-database
-    - component: databank-schema
-    - component: sra_dw-schema
+    - component:default/datamad-deploy
+    - component:default/app-datamad
+    - component:datamad-deploy
+    - component:elasticsearch-index-datamad
+    - component:DataMAD-database
+    - component:databank-schema
+    - component:sra_dw-schema
   lifecycle: production
 
 ---
@@ -98,7 +98,7 @@ spec:
   owner: group:default/developers
   system: system:default/DataMAD
   dependsOn: 
-    - component: default/db6
+    - component:default/db6
   dependencyOf: 
-    - system: default/DataMAD
+    - system:default/DataMAD
   lifecycle: production
