@@ -23,10 +23,10 @@ spec:
   domain: domain:default/ceda-systems
   lifecycle: production
   dependsOn:
-    - component:default/app-datamad
+    - component:app-datamad
+    - component:elasticsearch-index-datamad
+    - component:DataMAD-database
     - component:default/datamad-deploy
-    - component:default/elasticsearch-index-datamad
-    - component:default/DataMAD-database
     - component:default/databank-schema
     - component:default/sra_dw-schema
 
