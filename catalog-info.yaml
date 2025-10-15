@@ -77,7 +77,7 @@ spec:
   system: system:default/DataMAD
   lifecycle: production
   depends on:
-    - system: default/elasticsearch-deployment
+    - system:default/elasticsearch-deployment
   dependencyOf: 
     - system:default/DataMAD
 
