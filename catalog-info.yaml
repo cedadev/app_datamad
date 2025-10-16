@@ -29,8 +29,8 @@ spec:
     - component:default/datamad-deploy
     - component:default/databank-schema
     - component:default/sra_dw-schema
-    - system:default/rancher-prod
-    - system:default/rancher-staging
+    - resource:default/rancher-prod
+    - resource:default/rancher-staging
 
 ---
 apiVersion: backstage.io/v1alpha1
