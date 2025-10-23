@@ -72,6 +72,10 @@ metadata:
     - "deputy-manager:rhys-evans"
     - "review:passed"
     - "host:unknown"
+  annotations:
+    backstage.io/kubernetes-label-selector: app.kubernetes.io/instance=datamad,app.kubernetes.io/name=app,
+    goharbor.io/repository-slug: datamad/app
+    backstage.io/techdocs-ref: dir:.
 spec:
   type: database
   owner: group:default/developers
