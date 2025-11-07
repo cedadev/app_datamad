@@ -83,8 +83,6 @@ spec:
   lifecycle: production
   dependsOn:
     - system:default/elasticsearch-deployment
-  dependencyOf: 
-    - system:default/DataMAD
 
 ---
 apiVersion: backstage.io/v1alpha1
