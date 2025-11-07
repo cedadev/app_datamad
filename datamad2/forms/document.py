@@ -26,4 +26,4 @@ class MultipleDocumentUploadForm(forms.ModelForm):
         fields = ('upload',)
 
     upload = forms.FileField(
-        widget=forms.ClearableFileInput(attrs={'multiple': True}))
+        widget=forms.ClearableFileInput(attrs={'allow_multiple_selected': True}))
