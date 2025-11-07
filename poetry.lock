@@ -743,21 +743,6 @@ six = "*"
 tests = ["coverage", "coveralls", "django-nose", "flake8", "isort", "mock", "nose", "preggy", "pypandoc", "tox (<2.0)", "twine", "yanc"]
 
 [[package]]
-name = "django-upgrade"
-version = "1.21.0"
-description = "Automatically upgrade your Django project code."
-optional = false
-python-versions = ">=3.8"
-groups = ["main"]
-files = [
-    {file = "django_upgrade-1.21.0-py3-none-any.whl", hash = "sha256:a0a7b11d5108fb2d3038cea2382c1332c9be4ff5059a38357fbd28116ebf3803"},
-    {file = "django_upgrade-1.21.0.tar.gz", hash = "sha256:e65021029e7d18b407bd128a8ccb31e5e06685068b37b6b1eaf2f77aa3d3df98"},
-]
-
-[package.dependencies]
-tokenize-rt = ">=4.1"
-
-[[package]]
 name = "djangorestframework"
 version = "3.15.2"
 description = "Web APIs for Django, made easy."
@@ -2256,18 +2241,6 @@ dev = ["build", "hatch"]
 doc = ["sphinx"]
 
 [[package]]
-name = "tokenize-rt"
-version = "6.2.0"
-description = "A wrapper around the stdlib `tokenize` which roundtrips."
-optional = false
-python-versions = ">=3.9"
-groups = ["main"]
-files = [
-    {file = "tokenize_rt-6.2.0-py2.py3-none-any.whl", hash = "sha256:a152bf4f249c847a66497a4a95f63376ed68ac6abf092a2f7cfb29d044ecff44"},
-    {file = "tokenize_rt-6.2.0.tar.gz", hash = "sha256:8439c042b330c553fdbe1758e4a05c0ed460dbbbb24a606f11f0dee75da4cad6"},
-]
-
-[[package]]
 name = "tqdm"
 version = "4.67.1"
 description = "Fast, Extensible Progress Meter"
@@ -2653,4 +2626,4 @@ test = ["zope.security", "zope.testrunner"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "9454e7da7450f84993c6da200a9d1d06b7276fb680ae017bd289d9d25d19f0bd"
+content-hash = "bc6dd0e390bdaa68017a6afcc47664e14aca49e65e28733ddab4b6d369ddb299"
