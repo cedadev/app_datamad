@@ -550,9 +550,12 @@ class Command(BaseCommand):
                                          'EMAIL', 'RESEARCH_ORG', 'DEPARTMENT', 'ADDRESS1', 'CITY', 'POSTCODE', 'GEOGRAPHIC_AREA',
                                          'GRANT_STATUS', 'FACILITY']                    
                     
+                    if (row.GRANTREFERENCE == 'NE/T008040/1') & (source_field == 'ADDRESS1'):
+                        pause = 1
+
                     if source_field in allowed_to_change:
-                        if (value!='') | (value is not None):
-                            data[model_field] = value # only update if the new entry in DataBank is not empty
+                        if (value!='') & (value != None):
+                            data[model_field] = value # only update if the new entry in DataBank is not empty/ None
 
                 else:  # All other grant types
                     # Set ACTUAL_START_DATE / ACTUAL_END_DATE  as PROPOSED_ST_DT/ PROPOSED_END_DT if actual start and end haven't yet been set in Databank.
