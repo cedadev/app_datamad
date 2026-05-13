@@ -32,3 +32,4 @@ temp_new.csv
 *.sqlite3
 Dockerfile_debug_new
 MACC_only.xlsx
+datamadsite/__pycache__/

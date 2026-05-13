@@ -10,14 +10,11 @@ __copyright__ = 'Copyright 2024 United Kingdom Research and Innovation'
 __license__ = 'BSD - see LICENSE file in top-level package directory'
 __contact__ = 'matthew.paice@stfc.ac.uk'
 
-from multiprocessing.util import debug
-
 from django.core.management.base import BaseCommand
 from datamad2.models import ImportedGrant, Grant
 from django.db import connections
 
 import pandas as pd
-import numpy as np
 import math
 from dateutil.parser import parse
 import datetime
@@ -201,37 +198,6 @@ class Command(BaseCommand):
     
     @staticmethod
     def hybrid_parent_child_dict_creator():
-    #     hybrid_parent_child =  {"grant_1": {"parent": "NE/Y503265/1", "child_1": "NE/Y503289/1"},
-    #                             "grant_1a": {"parent": "NE/Y503265/1", "child_2": "NE/Y503277/1"},
-    #                             "grant_2": {"parent": "NE/Y503277/1", "child_1": "NE/Y503265/1"},
-    #                             "grant_3": {"parent": "NE/Y503289/1", "child_1": "NE/Y503265/1"},
-    #                             "grant_4": {"parent": "NE/Y503290/1", "child_1": "NE/Z503356/1"},
-    #                             "grant_5": {"parent": "NE/Y503307/1", "child_1": "NE/Y503319/1"},
-    #                             "grant_6": {"parent": "NE/Y503319/1", "child_1": "NE/Y503307/1"},
-    #                             "grant_7": {"parent": "NE/Y503320/1", "child_1": "NE/Z503344/1"},
-    #                             "grant_8": {"parent": "NE/Y503332/1", "child_1": "NE/Z503344/1"},
-    #                             "grant_9": {"parent": "NE/Z000106/1", "child_1": "NE/Z000173/1"},
-    #                             "grant_10": {"parent": "NE/Z000165/1", "child_1": "NE/Z000181/1"},
-    #                             "grant_11": {"parent": "NE/Z000173/1", "child_1": "NE/Z000106/1"},
-    #                             "grant_12": {"parent": "NE/Z000181/1", "child_1": "NE/Z000165/1"},
-    #                             "grant_13": {"parent": "NE/Z503344/1", "child_1": "NE/Y503320/1"}, 
-    #                             "grant_13a": {"parent": "NE/Z503344/1", "child_2": "NE/Y503332/1"},
-    #                             "grant_14": {"parent": "NE/Z503356/1", "child_1": "NE/Y503290/1"},
-    #                             "grant_15": {"parent": "NE/Z50340X/1", "child_1": "NE/Z503411/1"},
-    #                             "grant_16": {"parent": "NE/Z503411/1", "child_1": "NE/Z50340X/1"},
-    #                             "grant_17": {"parent": "NE/Z503423/1", "child_1": "NE/Z503435/1"},
-    #                             "grant_18": {"parent": "NE/Z503435/1", "child_1": "NE/Z503423/1"},
-    #                             "grant_19": {"parent": "NE/Z50354X/1", "child_1": "NE/Z503551/1"},
-    #                             "grant_20": {"parent": "NE/Z503551/1", "child_1": "NE/Z50354X/1"},
-    #                             "grant_21": {"parent": "NE/Z503666/1", "child_1": "NE/Z503678/1"},
-    #                             "grant_22": {"parent": "NE/Z503678/1", "child_1": "NE/Z503666/1"},
-    #                             "grant_23": {"parent": "NE/Z503770/1", "child_1": "NE/Z503873/1"},
-    #                             "grant_24": {"parent": "NE/Z503782/1", "child_1": "NE/Z503885/1"},
-    #                             "grant_25": {"parent": "NE/Z503873/1", "child_1": "NE/Z503770/1"},
-    #                             "grant_26": {"parent": "NE/Z503885/1", "child_1": "NE/Z503782/1"}   
-    # }
-        
-
         # GOT TO HERE, sort out this mess so parent and child relationships are correct, see Datamad website for info
         hybrid_parent_child =  {"grant_1": {"parent": "NE/Y503265/1", "child": "NE/Y503289/1"}, # Sort out mess
                                 "grant_2": {"parent": "NE/Y503265/1", "child": "NE/Y503277/1"}, # Sort out mess
@@ -245,10 +211,9 @@ class Command(BaseCommand):
                                 "grant_9": {"parent": "NE/Z503678/1", "child": "NE/Z503666/1"},
                                 "grant_10": {"parent": "NE/Z503770/1", "child": "NE/Z503873/1"},
                                 "grant_11": {"parent": "NE/Z503782/1", "child": "NE/Z503885/1"},
-
-                                "grant_12": {"parent": "NE/Z000173/1", "child": "NE/Z000106/1"}, # CHECK in databank for parent and child relationship, not sure if they are correct, also check if they are in databank at all as they are very old grants
-                                "grant_13": {"parent": "NE/Z000181/1", "child": "NE/Z000165/1"}, # CHECK in databank for parent and child relationship, not sure if they are correct, also check if they are in databank at all as they are very old grants
-                                "grant_14": {"parent": "NE/Z50340X/1", "child": "NE/Z503411/1"}, # BOTH GRANTS MISSING ENTIRELY FROM DATAMAD
+                                "grant_12": {"parent": "NE/Z000173/1", "child": "NE/Z000106/1"}, 
+                                "grant_13": {"parent": "NE/Z000181/1", "child": "NE/Z000165/1"},
+                                "grant_14": {"parent": "NE/Z50340X/1", "child": "NE/Z503411/1"},
                             }
         return hybrid_parent_child
     
@@ -261,10 +226,7 @@ class Command(BaseCommand):
 
         # Merge into main dataframe to label child grants with their respective parent grants.
         df = df.merge(hybrid_parent_child_df, how='left', on='NERC_ID')
-        parent_dfs = df[~df['PARENT_GRANT'].isna()].copy()
 
-        temp = df[df["NERC_ID"] == "NE/Y503265/1"]
-        
         return df
     
     def special_grant_cases(self, df):
@@ -394,6 +356,10 @@ class Command(BaseCommand):
         # Delete random "1" GRANTREFERENCE which contains no information
         df = df.drop(df[df['GRANTREFERENCE'] ==1].index)
 
+        # Ensure existing Datamad parent/ child relationships are maintained and 
+        # write child/ parent relationship for pre-existing Datamad grants
+        df = self.hybrid_parent_child(df)
+
         # Rename GRANTREFERENCE for non- LEAD_GRANT so there aren't GRANTREFERENCE DataMad database clashes. Leave the PI grant as the "parent" grant with no suffix
         # Identify PIs (in case of multiple label the first one), if no PI then they are labelled in order of preference:
         # Grant-Manager, CI, Project-Lead, Project-Co-Lead-UK, etc unspecified and unknown last.
@@ -402,10 +368,6 @@ class Command(BaseCommand):
         # Create hide record, set all but LEAD_GRANT to hidden "1" status
         df["HIDE_RECORD"] = 1
         df.loc[(df.LEAD_GRANT == 1), 'HIDE_RECORD'] = 0
-
-        # Ensure existing Datamad parent/ child relationships are maintained and 
-        # write child/ parent relationship for pre-existing Datamad grants
-        df = self.hybrid_parent_child(df)
 
         # Now populate the rest of the parent/ child relationships
         # Need to populate PARENT_GRANT with grant number for LEAD_GRANT, where appropriate
