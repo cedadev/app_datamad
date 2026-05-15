@@ -453,10 +453,15 @@ class Command(BaseCommand):
         if debug == True:
             self.general_debug(df)
 
+
+        temp = df[df['GRANTREFERENCE'] == "NE/Y503265/1"]
+
         # Checks on incoming data
         for row in tqdm(df.itertuples(), desc='Importing grants'):
             data = {}
             grant_ref = row.GRANTREFERENCE
+
+            print(f'Importing grant {grant_ref}...')
 
             # Check if grant already exists
             try:
@@ -554,6 +559,7 @@ class Command(BaseCommand):
             grant_ref = row.GRANTREFERENCE
 
             try:
+                print(f'Checking if grant {grant_ref} exists...')
                 existing_G = Grant.objects.get(grant_ref=grant_ref)
                 existing_ig = existing_G.importedgrant
                 changed_fields = list(filter(
@@ -573,6 +579,8 @@ class Command(BaseCommand):
             hide_record = row.HIDE_RECORD
             parent_grant = row.PARENT_GRANT
             row_grant = row.GRANTREFERENCE
+
+            print(f'Processing parent child relationship for grant {row_grant}...')
 
             # Ignore NaN values
             if not isinstance(parent_grant, str) and math.isnan(parent_grant):
