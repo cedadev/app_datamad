@@ -15,7 +15,6 @@ from datamad2.models import ImportedGrant, Grant
 from django.db import connections
 
 import pandas as pd
-import numpy as np
 import math
 from dateutil.parser import parse
 import datetime
@@ -62,7 +61,7 @@ class Command(BaseCommand):
                     dim_department.DepartmentName AS DEPARTMENT, \
                     dim_application_date.ActualStartDate AS ACTUAL_START_DATE, \
                     dim_application_date.ActualEndDate AS ACTUAL_END_DATE, \
-                    fact_application.AdministratingCouncil AS NEW_ADMINISTRATING_COUNCIL, \
+                    dim_application_ext.CouncilLongName AS NEW_ADMINISTRATING_COUNCIL, \
                     dim_application_date.ProposedStartDate AS PROPOSED_ST_DT, \
                     dim_application_date.ProposedEndDate AS PROPOSED_END_DT, \
                     fact_application.ApplicationStatus AS GRANT_STATUS, \
@@ -96,7 +95,7 @@ class Command(BaseCommand):
                             ON fact_application.ApplicationID = fact_rost.ApplicationID \
                     LEFT OUTER JOIN dim_rost_facilities \
                             ON fact_rost.ROSTOutcomeSKey = dim_rost_facilities.ROSTOutcomeSKey \
-                    WHERE fact_application.AdministratingCouncil = 'NERC' AND \
+                    WHERE dim_application_ext.CouncilLongName = 'Natural Environment Research Council' AND \
                     dim_application_date.ActualEndDate > '2024-06-01' AND \
                     (fact_application.ApplicationStatus = 'ACCEPTED' OR \
                     fact_application.ApplicationStatus = 'ACTIVE' OR \
@@ -199,51 +198,35 @@ class Command(BaseCommand):
     
     @staticmethod
     def hybrid_parent_child_dict_creator():
-        hybrid_parent_child =  {"grant_1": {"parent": "NE/Y503265/1", "child_1": "NE/Y503289/1", "child_2": "NE/Y503277/1"},
-                                "grant_2": {"parent": "NE/Y503277/1", "child_1": "NE/Y503265/1"},
-                                "grant_3": {"parent": "NE/Y503289/1", "child_1": "NE/Y503265/1"},
-                                "grant_4": {"parent": "NE/Y503290/1", "child_1": "NE/Z503356/1"},
-                                "grant_5": {"parent": "NE/Y503307/1", "child_1": "NE/Y503319/1"},
-                                "grant_6": {"parent": "NE/Y503319/1", "child_1": "NE/Y503307/1"},
-                                "grant_7": {"parent": "NE/Y503320/1", "child_1": "NE/Z503344/1"},
-                                "grant_8": {"parent": "NE/Y503332/1", "child_1": "NE/Z503344/1"},
-                                "grant_9": {"parent": "NE/Z000106/1", "child_1": "NE/Z000173/1"},
-                                "grant_10": {"parent": "NE/Z000165/1", "child_1": "NE/Z000181/1"},
-                                "grant_11": {"parent": "NE/Z000173/1", "child_1": "NE/Z000106/1"},
-                                "grant_12": {"parent": "NE/Z000181/1", "child_1": "NE/Z000165/1"},
-                                "grant_13": {"parent": "NE/Z503344/1", "child_1": "NE/Y503320/1", "child_2": "NE/Y503332/1"},
-                                "grant_14": {"parent": "NE/Z503356/1", "child_1": "NE/Y503290/1"},
-                                "grant_15": {"parent": "NE/Z50340X/1", "child_1": "NE/Z503411/1"},
-                                "grant_16": {"parent": "NE/Z503411/1", "child_1": "NE/Z50340X/1"},
-                                "grant_17": {"parent": "NE/Z503423/1", "child_1": "NE/Z503435/1"},
-                                "grant_18": {"parent": "NE/Z503435/1", "child_1": "NE/Z503423/1"},
-                                "grant_19": {"parent": "NE/Z50354X/1", "child_1": "NE/Z503551/1"},
-                                "grant_20": {"parent": "NE/Z503551/1", "child_1": "NE/Z50354X/1"},
-                                "grant_21": {"parent": "NE/Z503666/1", "child_1": "NE/Z503678/1"},
-                                "grant_22": {"parent": "NE/Z503678/1", "child_1": "NE/Z503666/1"},
-                                "grant_23": {"parent": "NE/Z503770/1", "child_1": "NE/Z503873/1"},
-                                "grant_24": {"parent": "NE/Z503782/1", "child_1": "NE/Z503885/1"},
-                                "grant_25": {"parent": "NE/Z503873/1", "child_1": "NE/Z503770/1"},
-                                "grant_26": {"parent": "NE/Z503885/1", "child_1": "NE/Z503782/1"}
-}
+        # GOT TO HERE, sort out this mess so parent and child relationships are correct, see Datamad website for info
+        hybrid_parent_child =  {"grant_1": {"parent": "NE/Y503265/1", "child": "NE/Y503289/1"}, # Sort out mess
+                                "grant_2": {"parent": "NE/Y503265/1", "child": "NE/Y503277/1"}, # Sort out mess
 
+                                "grant_3": {"parent": "NE/Y503290/1", "child": "NE/Z503356/1"},
+                                "grant_4": {"parent": "NE/Y503307/1", "child": "NE/Y503319/1"},
+                                "grant_5": {"parent": "NE/Z503344/1", "child": "NE/Y503320/1"},
+                                "grant_6": {"parent": "NE/Z503344/1", "child": "NE/Y503332/1"},
+                                "grant_7": {"parent": "NE/Z503423/1", "child": "NE/Z503435/1"},
+                                "grant_8": {"parent": "NE/Z503551/1", "child": "NE/Z50354X/1"},
+                                "grant_9": {"parent": "NE/Z503678/1", "child": "NE/Z503666/1"},
+                                "grant_10": {"parent": "NE/Z503770/1", "child": "NE/Z503873/1"},
+                                "grant_11": {"parent": "NE/Z503782/1", "child": "NE/Z503885/1"},
+                                "grant_12": {"parent": "NE/Z000173/1", "child": "NE/Z000106/1"}, 
+                                "grant_13": {"parent": "NE/Z000181/1", "child": "NE/Z000165/1"},
+                                "grant_14": {"parent": "NE/Z50340X/1", "child": "NE/Z503411/1"}, # Missing
+                            }
         return hybrid_parent_child
     
     def hybrid_parent_child(self, df):
-        hybrid_parent_child = self.hybrid_parent_child_dict_creator()    
+        hybrid_parent_child = self.hybrid_parent_child_dict_creator()
         hybrid_parent_child_df =   pd.DataFrame(hybrid_parent_child).transpose()
-        hybrid_parent_child_df = hybrid_parent_child_df.rename(columns={"parent": "PARENT_GRANT"})
-        
-        # Extract children then merge on child_1 and child_2 to fill in PARENT_GRANT
-        children = pd.concat([hybrid_parent_child_df.child_1, hybrid_parent_child_df.child_2])
-        children_df = pd.DataFrame(children, columns=["GRANTREFERENCE"])
-        children_df = children_df.dropna()  # Remove "Missing" grants
 
-        children_df = children_df.join(hybrid_parent_child_df, lsuffix='_new', rsuffix='_orig')
+        # Rename columns for merging with main "df" dataframe.
+        hybrid_parent_child_df = hybrid_parent_child_df.rename(columns={"parent": "PARENT_GRANT", "child":"NERC_ID"})
 
-        # Merge into main dataframe to get parent grants already in datamad
-        df = df.merge(children_df[['GRANTREFERENCE', 'PARENT_GRANT']], how='left', on='GRANTREFERENCE')
-        
+        # Merge into main dataframe to label child grants with their respective parent grants.
+        df = df.merge(hybrid_parent_child_df, how='left', on='NERC_ID')
+
         return df
     
     def special_grant_cases(self, df):
@@ -254,6 +237,43 @@ class Command(BaseCommand):
         # Other special grant cases to go below here
         
         return df
+    
+    def grant_totals_calculator(self, df):
+        # This is a function to calculate grant totals used for CEDA internal checking
+        df_lime = df[df['GRANT_STATUS'] == "Active"]
+        df_lime = df_lime[df_lime['LEAD_GRANT'] == True]
+        df_lime = df_lime[df_lime['ACTUAL_END_DATE'] > datetime.date(2026,5,1)]
+
+
+        # Need to filter out doctoral training programs, etc which do not produce data
+        df_lime = df_lime[~df_lime["CALL"].str.contains("CDT")]
+        df_lime = df_lime[~df_lime["CALL"].str.contains("KE")]
+                
+        grant_total = df_lime['AMOUNT'].sum()
+        
+        return grant_total
+    
+
+    def general_debug(self, df):
+        # A general debug function to drop in to the relevant place in the code.
+        # Its contents is not stable and will change from release to release, this is intentional,
+        # as it is just a place to drop in code to check/ debug specific things when needed/ requested by NERC EDS.
+        df_temp = df[df['PROJECT_TITLE'] == "UKGravelBarriers"]
+        
+        df_lemon = df[df['NERC_ID'] == "UKRI/52/1"]
+
+        hybrid_parent_child = self.hybrid_parent_child_dict_creator()    
+        hybrid_parent_child_df =   pd.DataFrame(hybrid_parent_child).transpose()
+        hybrid_parent_child_df = hybrid_parent_child_df.rename(columns={"parent": "PARENT_GRANT", "child":"GRANTREFERENCE"})
+        
+
+        temp_2_df = df[df['NERC_ID'] == "NE/Y503320/1"]
+
+        # Checking for presence of grants:
+        temp_df = df[df['GRANTREFERENCE'].isin(hybrid_parent_child_df['GRANTREFERENCE'])]
+
+        pause = 1
+
 
     def handle(self, *args, **options):
         
@@ -268,6 +288,11 @@ class Command(BaseCommand):
 
         # Creation of dataframe with data from SQL query
         df_databank = pd.DataFrame(row)
+
+        # Rename long form Natural Environment Research Council to NERC in NEW_ADMINISTRATING_COUNCIL column, 
+        # This vital change has to be made, due to changes in Databank being incompatible with
+        # the DataMad database, as the long form name now in Databank would break all the existing datamad labels
+        df_databank.NEW_ADMINISTRATING_COUNCIL = "NERC"
 
         # Extract unique grant references as a list
         grant_refs = df_databank.GRANTREFERENCE.unique().tolist()
@@ -331,6 +356,10 @@ class Command(BaseCommand):
         # Delete random "1" GRANTREFERENCE which contains no information
         df = df.drop(df[df['GRANTREFERENCE'] ==1].index)
 
+        # Ensure existing Datamad parent/ child relationships are maintained and 
+        # write child/ parent relationship for pre-existing Datamad grants
+        df = self.hybrid_parent_child(df)
+
         # Rename GRANTREFERENCE for non- LEAD_GRANT so there aren't GRANTREFERENCE DataMad database clashes. Leave the PI grant as the "parent" grant with no suffix
         # Identify PIs (in case of multiple label the first one), if no PI then they are labelled in order of preference:
         # Grant-Manager, CI, Project-Lead, Project-Co-Lead-UK, etc unspecified and unknown last.
@@ -339,10 +368,6 @@ class Command(BaseCommand):
         # Create hide record, set all but LEAD_GRANT to hidden "1" status
         df["HIDE_RECORD"] = 1
         df.loc[(df.LEAD_GRANT == 1), 'HIDE_RECORD'] = 0
-
-        # Ensure existing Datamad parent/ child relationships are maintained and 
-        # write child/ parent relationship for pre-existing Datamad grants
-        df = self.hybrid_parent_child(df)
 
         # Now populate the rest of the parent/ child relationships
         # Need to populate PARENT_GRANT with grant number for LEAD_GRANT, where appropriate
@@ -418,11 +443,25 @@ class Command(BaseCommand):
                 'FACILITY': 'facility',
                 'HIDE_RECORD': 'hide_record'
                 }
-                        
+        
+        run_grant_totals = False # Set to True to run grant totals calculator, which is used for internal checking by CEDA
+
+        if run_grant_totals is True:
+            grant_totals = self.grant_totals_calculator(df)
+
+        debug = False
+        if debug == True:
+            self.general_debug(df)
+
+
+        temp = df[df['GRANTREFERENCE'] == "NE/Y503265/1"]
+
         # Checks on incoming data
         for row in tqdm(df.itertuples(), desc='Importing grants'):
             data = {}
             grant_ref = row.GRANTREFERENCE
+
+            print(f'Importing grant {grant_ref}...')
 
             # Check if grant already exists
             try:
@@ -467,14 +506,23 @@ class Command(BaseCommand):
                 if row.GRANTREFERENCE.endswith("/1") & ((existing_ig != None) & (grant_missing_flag ==False)):
                     # Special case to deal with /1 grants only, 
                     # don't want to overwrite previously imported Siebel data
-                    # Only update grant status and dates
+                    # Only update the allowed_to_change fields below
 
-                    # Write in any new data (dates, grant status and facility (if it isn't empty in DataBank) only, for now)
-                    if source_field in ('ROUTING_CLASSIFICATION', 'PROPOSED_ST_DT', 'PROPOSED_END_DT', 'ACTUAL_START_DATE', 'ACTUAL_END_DATE', 'GRANT_STATUS', 'FACILITY'):
-                        if (source_field == 'FACILITY') & (value==""):
-                            ... # Don't update in this case as new facility entry in DataBank is empty
-                        else:
-                            data[model_field] = value
+                    # Write in any new data (limited to the fields in allowed_to_change, for now, 
+                    # this is to avoid overwriting certain data and data fields which only existed in Siebel, 
+                    # which has now shutdown, so would be irrecoverable)
+                    allowed_to_change = ['ROUTING_CLASSIFICATION',
+                                         'GRANT_HOLDER', 'TEAM_MEMBER_ROLE',
+                                         'PROPOSED_ST_DT', 'PROPOSED_END_DT', 'ACTUAL_START_DATE', 'ACTUAL_END_DATE',
+                                         'EMAIL', 'RESEARCH_ORG', 'DEPARTMENT', 'ADDRESS1', 'CITY', 'POSTCODE', 'GEOGRAPHIC_AREA',
+                                         'GRANT_STATUS', 'FACILITY']                    
+                    
+                    if (row.GRANTREFERENCE == 'NE/T008040/1') & (source_field == 'ADDRESS1'):
+                        pause = 1
+
+                    if source_field in allowed_to_change:
+                        if (value!='') & (value != None):
+                            data[model_field] = value # only update if the new entry in DataBank is not empty/ None
 
                 else:  # All other grant types
                     # Set ACTUAL_START_DATE / ACTUAL_END_DATE  as PROPOSED_ST_DT/ PROPOSED_END_DT if actual start and end haven't yet been set in Databank.
@@ -511,6 +559,7 @@ class Command(BaseCommand):
             grant_ref = row.GRANTREFERENCE
 
             try:
+                print(f'Checking if grant {grant_ref} exists...')
                 existing_G = Grant.objects.get(grant_ref=grant_ref)
                 existing_ig = existing_G.importedgrant
                 changed_fields = list(filter(
@@ -530,6 +579,8 @@ class Command(BaseCommand):
             hide_record = row.HIDE_RECORD
             parent_grant = row.PARENT_GRANT
             row_grant = row.GRANTREFERENCE
+
+            print(f'Processing parent child relationship for grant {row_grant}...')
 
             # Ignore NaN values
             if not isinstance(parent_grant, str) and math.isnan(parent_grant):

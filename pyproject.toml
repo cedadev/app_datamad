@@ -24,7 +24,7 @@ packages = [
 poetry-plugin-export = ">=1.8"
 
 [tool.poetry.dependencies]
-python = ">=3.11,<4.0"
+python = ">=3.12, <3.13"
 
 # CEDA dependencies
 django-jira-oauth = {git = "https://github.com/rsmith013/django-jira-oauth.git", rev = "13c776653c48058a69a110cbd9c8c139a672594f"}
@@ -52,7 +52,6 @@ django-tables2 = "2.7.0"
 django-unused-media = "0.2.2"
 docxcompose = "1.4.0"
 docxtpl = "0.18.0"
-elastic-transport = "8.17.1"
 elasticsearch = "8.18.1"
 Jinja2 = "3.1.4"
 jira = "3.8.0"
