@@ -213,7 +213,7 @@ class Command(BaseCommand):
                                 "grant_11": {"parent": "NE/Z503782/1", "child": "NE/Z503885/1"},
                                 "grant_12": {"parent": "NE/Z000173/1", "child": "NE/Z000106/1"}, 
                                 "grant_13": {"parent": "NE/Z000181/1", "child": "NE/Z000165/1"},
-                                "grant_14": {"parent": "NE/Z50340X/1", "child": "NE/Z503411/1"},
+                                "grant_14": {"parent": "NE/Z50340X/1", "child": "NE/Z503411/1"}, # Missing
                             }
         return hybrid_parent_child
     
@@ -289,10 +289,10 @@ class Command(BaseCommand):
         # Creation of dataframe with data from SQL query
         df_databank = pd.DataFrame(row)
 
-        # Rename long form Natural Environment Research Council to NERC in RESEARCH_ORG column, 
+        # Rename long form Natural Environment Research Council to NERC in NEW_ADMINISTRATING_COUNCIL column, 
         # This vital change has to be made, due to changes in Databank being incompatible with
         # the DataMad database, as the long form name now in Databank would break all the existing datamad labels
-        df_databank.RESEARCH_ORG = "NERC"
+        df_databank.NEW_ADMINISTRATING_COUNCIL = "NERC"
 
         # Extract unique grant references as a list
         grant_refs = df_databank.GRANTREFERENCE.unique().tolist()
