@@ -27,7 +27,7 @@ poetry-plugin-export = ">=1.8"
 python = ">=3.13, <3.14"
 
 # CEDA dependencies
-django-jira-oauth = {git = "https://github.com/rsmith013/django-jira-oauth.git", rev = "13c776653c48058a69a110cbd9c8c139a672594f"}
+django-jira-oauth = {git = "https://github.com/cedadev/django-jira-oauth.git", rev = "5e5f280c4702435ea6a1deadd2fa517dde0ba782"}
 fwtheme-django = {git = "https://github.com/cedadev/fwtheme-django.git", rev = "786021bdb6f34cf693d44e96803a5df7d88b76fd"}
 fwtheme-django-ceda-serv = {git = "https://github.com/cedadev/fwtheme-django-ceda-serv.git", rev = "4653d071d5a53e1ab0953b2a83cb1265cc05ab91"}
 orgtheme-datamad = {git = "https://github.com/cedadev/orgtheme-datamad.git", rev = "015dc5767f75b068a8883bf7380056e863be19a2"}
@@ -44,6 +44,7 @@ django-classy-tags = "4.1.0"
 django-cookie-law = "2.2.0"
 django-crispy-forms = "2.3"
 django-dprog-jfu = "3.0.0"
+django-flexi-settings = {git = "https://github.com/cedadev/django-flexi-settings.git", tag = "0.1.3"}
 django-haystack = "3.3.0"
 djangorestframework = "3.15.2"
 django-model-utils = "5.0.0"
