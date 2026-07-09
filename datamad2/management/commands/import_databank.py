@@ -65,8 +65,8 @@ class Command(BaseCommand):
                     dim_application_date.ProposedStartDate AS PROPOSED_ST_DT, \
                     dim_application_date.ProposedEndDate AS PROPOSED_END_DT, \
                     fact_application.ApplicationStatus AS GRANT_STATUS, \
-                    dim_organisation.AddressLine1 AS ADDRESS1, \
-                    dim_organisation.TownOrCity AS CITY, \
+                    dim_organisation.Street AS ADDRESS1, \
+                    dim_organisation.City AS CITY, \
                     dim_organisation.PostCode AS POSTCODE, \
                     fact_application.AwardedAmount AS 'AMOUNT', \
                     dim_classification_area.SubjectArea AS SCIENCE_AREA, \
