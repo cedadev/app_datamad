@@ -45,7 +45,7 @@ class Command(BaseCommand):
     # Updated SQL query to after Datank release DB-0084 removed tables. 
     # This query pulls information needed by DataMAD, also renames to DataMad names.
     def custom_databank_datamad_sql_query(self):
-        sql_databank = "SELECT \
+        sql_databank = "SELECT DISTINCT\
                     fact_application.ApplicationID AS GRANTREFERENCE, \
                     fact_application.ApplicationID AS UKRI_ID, \
                     fact_application.FinanceAwardID AS NERC_ID, \
@@ -53,7 +53,7 @@ class Command(BaseCommand):
                     dim_scheme.SchemeName AS SCHEME, \
                     dim_opportunity.OpportunityName AS 'CALL', \
                     dim_opportunity.FundingMode AS GRANT_TYPE, \
-                    CONCAT_WS(' ', dim_person.Title, dim_person.Forename, dim_person.Surname) AS GRANT_HOLDER, \
+                    dim_person.FullName AS GRANT_HOLDER, \
                     fact_application_team.TeamMemberRole AS TEAM_MEMBER_ROLE, \
                     dim_application_ext.ApplicationTechnicalSummary AS OBJECTIVES, \
                     dim_person.Email AS EMAIL, \
@@ -103,6 +103,8 @@ class Command(BaseCommand):
                     "
         
 
+                    # CONCAT_WS(' ',dim_person.FirstName, dim_person.LastName) AS GRANT_HOLDER, \
+
                     # dim_application_date.ActualEndDate > '2024-06-01' AND \
                     # (CHAR_LENGTH(fact_application.ApplicationID) < 7 OR \
                     # (fact_application.ApplicationID LIKE '%/2' OR  fact_application.ApplicationID LIKE '%/3') \
@@ -117,7 +119,7 @@ class Command(BaseCommand):
         # Turn list of grant references into string (grant1, grant2, ...., grantN)
         gr_str = "('" + "', '".join(grant_references) + "')"
 
-        # Query to retrieve facility        
+        # Query to retrieve facility
         sql_sra_dw = "SELECT \
                mv_application_answer.ApplicationIdentifier AS GRANTREFERENCE, \
                mv_application_answer.ApplicationIdentifier AS UKRI_ID, \
