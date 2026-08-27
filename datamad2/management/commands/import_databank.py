@@ -96,11 +96,16 @@ class Command(BaseCommand):
                     LEFT OUTER JOIN dim_rost_facilities \
                             ON fact_rost.ROSTOutcomeSKey = dim_rost_facilities.ROSTOutcomeSKey \
                     WHERE dim_application_ext.CouncilLongName = 'Natural Environment Research Council' AND \
-                    dim_application_date.ActualEndDate > '2024-06-01' AND \
+                    ( NOT dim_application_date.ActualEndDate < '2024-06-01' OR \
+                    (dim_application_date.ActualEndDate IS NULL AND (fact_application.ApplicationStatus = 'ACCEPTED' OR fact_application.ApplicationStatus = 'ACTIVE'))) AND \
                     (fact_application.ApplicationStatus = 'ACCEPTED' OR \
                     fact_application.ApplicationStatus = 'ACTIVE' OR \
                     fact_application.ApplicationStatus = 'CLOSED') \
                     "
+
+
+                    # (dim_application_date.ActualEndDate < '2024-06-01' OR \
+                    # dim_application_date.ActualEndDate IS NULL) AND \
         
 
                     # CONCAT_WS(' ',dim_person.FirstName, dim_person.LastName) AS GRANT_HOLDER, \
