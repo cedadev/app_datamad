@@ -9,7 +9,8 @@ router.register(r'importedgrants', views.ImportedGrantViewSet)
 # router.register(r'permission', views.PermissionViewSet)
 router.register(r'datacenters', views.DataCentreViewSet, basename="datacenters")
 router.register(r'datacentres', views.DataCentreViewSet, basename="datacentres")
-router.register(r'subtasks', views.SubtaskViewSet)
+router.register(r'jira-subtasks', views.JIRASubtaskViewSet, basename="jira-subtasks")
+router.register(r'github-subtasks', views.GithubSubtaskViewSet, basename="github-subtasks")
 
 urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),

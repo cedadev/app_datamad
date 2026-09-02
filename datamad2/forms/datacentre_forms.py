@@ -9,7 +9,7 @@ __license__ = 'BSD - see LICENSE file in top-level package directory'
 __contact__ = 'richard.d.smith@stfc.ac.uk'
 
 from django import forms
-from datamad2.models import DataCentre, User, JIRAIssueType, GithubIssueType, DocumentTemplate, Subtask
+from datamad2.models import DataCentre, User, JIRAIssueType, GithubIssueType, DocumentTemplate, JIRASubtask, GithubSubtask
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 
@@ -88,7 +88,7 @@ class DocumentGenerationForm(forms.Form):
 
 class JIRASubtaskForm(CrispySubmitMixin, forms.ModelForm):
     class Meta:
-        model= Subtask
+        model= JIRASubtask
         fields = '__all__'
 
         widgets = {
@@ -97,7 +97,7 @@ class JIRASubtaskForm(CrispySubmitMixin, forms.ModelForm):
 
 class GithubSubtaskForm(CrispySubmitMixin, forms.ModelForm):
     class Meta:
-        model= Subtask
+        model= GithubSubtask
         fields = '__all__'
 
         widgets = {

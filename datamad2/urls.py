@@ -22,8 +22,8 @@ urlpatterns = [
     path('account/datacentre/users/new', (views.MyAccountNewUserView.as_view()), name='user_create'),
     path('account/datacentre/users/<int:pk>', views.MyAccountEditUserView.as_view(), name='user_update'),
     path('account/datacentre/users/<int:pk>/delete', views.MyAccountRemoveUserView.as_view(), name='user_delete'),
-    path('account/datacentre/jira-issue', (views.MyAccountDatacentreIssueTypeView.as_view()), name='jira_issue_type'),
-    path('account/datacentre/github-issue', (views.MyAccountDatacentreIssueTypeView.as_view()), name='github_issue_type'),
+    path('account/datacentre/jira-issue', (views.MyAccountDatacentreJIRAIssueTypeView.as_view()), name='jira_issue_type'),
+    path('account/datacentre/github-issue', (views.MyAccountDatacentreGithubIssueTypeView.as_view()), name='github_issue_type'),
 
     path('account/datacentre/templates', (views.DocumentTemplateListView.as_view()), name='document_template_list'),
     path('account/datacentre/templates/new', (views.DocumentTemplateCreateView.as_view()), name='document_template_create'),

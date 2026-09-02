@@ -27,8 +27,8 @@ urlpatterns = [
     path('', include('datamad2.urls')),
     path('health/', health_view, name="health"),
     path('api/', include('datamad2_api.urls')),
-    path('jira_oauth/', include('jira_oauth.urls')),
-    path('github_oauth/', include('github_oauth.urls'))
+    path('jira_oauth/', include('jira_oauth.urls'))
+    # path('github_oauth/', include('github_oauth.urls'))
 ]
 
 if settings.DEBUG:
