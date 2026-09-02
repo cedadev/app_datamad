@@ -318,30 +318,55 @@
         </div>
         <div class="card mt-3">
             <div class="card-header">
-                <h4 class="card-title">JIRA Ticket Links</h4>
+                <h4 class="card-title">JIRA/ Github Ticket Links</h4>
             </div>
             <div class="card-body">
                 <table class="table table-borderless">
-                    {% for ticket in imported_grant.grant.jiraticket_set.all %}
-                        <tr>
-                            <td>
-                                <a href="{{ ticket.url }}" target="_blank"><i class="fas fa-tasks"></i> {{ ticket.datacentre }}</a>
-                            </td>
-                            {% if user.is_admin and user.data_centre == ticket.datacentre %}
-                            <td class="text-right">
-                                <a title='Remove JIRA Link' data-toggle='tooltip'
-                                   href="{% url 'jiraticket_delete' pk=imported_grant.grant.pk jt_pk=ticket.pk %}">
-                                    &nbsp;<i class="fa fa-unlink text-danger"></i>
-                                </a>
-                            </td>
-                            {% endif %}
-                        </tr>
+                    {% if user.data_centre == "CEDA" %}
+                        {% for ticket in imported_grant.grant.githubticket_set.all %}
+                            <tr>
+                                <td>
+                                    <a href="{{ ticket.url }}" target="_blank"><i class="fas fa-tasks"></i> {{ ticket.datacentre }}</a>
+                                </td>
+                                {% if user.is_admin and user.data_centre == ticket.datacentre %}
+                                <td class="text-right">
+                                    <a title='Remove Github Link' data-toggle='tooltip'
+                                    href="{% url 'githubticket_delete' pk=imported_grant.grant.pk gh_pk=ticket.pk %}">
+                                        &nbsp;<i class="fa fa-unlink text-danger"></i>
+                                    </a>
+                                </td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
 
-                    {% endfor %}
-                </table>
-                <a class="btn btn-primary w-100" title='Create JIRA ticket for your datacentre' data-toggle='tooltip'
-                   href="{% url 'jira_convert' pk=imported_grant.grant.pk %}">
-                    <i class="fas fa-plus"></i> Create JIRA Ticket</a>
+                        </table>
+                        <a class="btn btn-primary w-100" title='Create Github ticket for your datacentre' data-toggle='tooltip'
+                        href="{% url 'github_convert' pk=imported_grant.grant.pk %}">
+                            <i class="fas fa-plus"></i> Create Github Ticket</a>
+
+                    {% else %}
+                        {% for ticket in imported_grant.grant.jiraticket_set.all %}
+                            <tr>
+                                <td>
+                                    <a href="{{ ticket.url }}" target="_blank"><i class="fas fa-tasks"></i> {{ ticket.datacentre }}</a>
+                                </td>
+                                {% if user.is_admin and user.data_centre == ticket.datacentre %}
+                                <td class="text-right">
+                                    <a title='Remove JIRA Link' data-toggle='tooltip'
+                                    href="{% url 'jiraticket_delete' pk=imported_grant.grant.pk jt_pk=ticket.pk %}">
+                                        &nbsp;<i class="fa fa-unlink text-danger"></i>
+                                    </a>
+                                </td>
+                                {% endif %}
+                            </tr>
+
+                        {% endfor %}
+
+                    </table>
+                    <a class="btn btn-primary w-100" title='Create JIRA ticket for your datacentre' data-toggle='tooltip'
+                    href="{% url 'jira_convert' pk=imported_grant.grant.pk %}">
+                        <i class="fas fa-plus"></i> Create JIRA Ticket</a>
+                {% endif %}
             </div>
         </div>
         <div class="card mt-3">

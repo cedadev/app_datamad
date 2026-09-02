@@ -5,7 +5,8 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from .models.grants import ImportedGrant, Grant
 from .models.users import User, DataCentre
-from .models.jira import Subtask, JIRAIssueType, JIRATicket
+from .models.jira import JIRASubtask, JIRAIssueType, JIRATicket
+from .models.github import GithubSubtask, GithubIssueType, GithubTicket
 from .models.document_store import Document
 from .models.data_management_plans import *
 
@@ -20,8 +21,12 @@ class DocumentInline(admin.TabularInline):
     extra = 0
 
 
-class SubtaskInline(admin.TabularInline):
-    model = Subtask
+class JIRASubtaskInline(admin.TabularInline):
+    model = JIRASubtask
+    extra = 0
+
+class GithubSubtaskInline(admin.TabularInline):
+    model = GithubSubtask
     extra = 0
 
 
@@ -37,10 +42,27 @@ class JIRAIssueTypeInline(admin.TabularInline):
                 permission = False
 
         return permission
+    
+class GithubIssueTypeInline(admin.TabularInline):
+    model = GithubIssueType
+    extra = 0
+
+    def has_add_permission(self, request, obj=None):
+        permission = super().has_add_permission(request, obj)
+
+        if obj:
+            if obj.githubissuetype_set.count() > 0:
+                permission = False
+
+        return permission
 
 
 class JIRATicketInline(admin.TabularInline):
     model = JIRATicket
+    extra = 0
+
+class GithubTicketInline(admin.TabularInline):
+    model = GithubTicket
     extra = 0
 
 
@@ -103,6 +125,7 @@ class GrantAdmin(admin.ModelAdmin):
     search_fields = ['grant_ref', 'importedgrant__title']
     inlines = [
         JIRATicketInline,
+        GithubTicketInline,
         DocumentInline
     ]
 
@@ -130,7 +153,9 @@ class DocumentAdmin(admin.ModelAdmin):
 class DataCentreAdmin(admin.ModelAdmin):
     inlines = [
         JIRAIssueTypeInline,
-        SubtaskInline,
+        GithubIssueTypeInline,
+        JIRASubtaskInline,
+        GithubSubtaskInline,
         DocumentTemplateInline,
         DataFormatInline,
         PreservationPlanInline,

@@ -16,3 +16,4 @@ from .grant import grant_detail, grant_history, grant_history_detail, \
     grant_visibility, SearchResultsExportView
 from .home import FacetedGrantListView
 from .jira import push_to_jira, JIRATicketDeleteView
+from .github import push_to_github, GitHubTicketDeleteView

@@ -73,7 +73,7 @@ def map_datamad_to_jira(request, imported_grant):
     return issue_dict
 
 
-def make_issue(request, imported_grant):
+def make_jira_issue(request, imported_grant):
     """
     Convert a grant into a JIRA ticket
     :param request: Django request object

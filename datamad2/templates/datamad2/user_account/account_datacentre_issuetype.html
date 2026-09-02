@@ -4,17 +4,31 @@
 {% block breadcrumb_items %}
     <li class="breadcrumb-item"><a href="{% url 'grant_list' %}">Home</a></li>
     <li class="breadcrumb-item active"><a href="{% url 'datacentre' %}">Datacentre</a></li>
-    <li class="breadcrumb-item active">JIRA Issue Fields</li>
+    {% if user.data_centre == "CEDA" %}
+        <li class="breadcrumb-item active">Github Issue Fields</li>
+    {% else %}
+        <li class="breadcrumb-item active">JIRA Issue Fields</li>
+    {% endif %}
 {% endblock breadcrumb_items %}
 
 {% block content %}
     <div class="col">
-        <h4>Data Management JIRA Mapping</h4>
-        <p>This form sets up the mapping between datamad and JIRA for pushing content from datamad to JIRA tickets for grants.</p>
-        <div class="row">
-            <div class="col">
-                {% crispy form %}
+        {% if user.data_centre == "CEDA" %}
+            <h4>Data Management Github Mapping</h4>
+            <p>This form sets up the mapping between datamad and Github for pushing content from datamad to Github issues for grants.</p>
+            <div class="row">
+                <div class="col">
+                    {% crispy form %}
+                </div>
             </div>
-        </div>
+        {% else %}
+            <h4>Data Management JIRA Mapping</h4>
+            <p>This form sets up the mapping between datamad and JIRA for pushing content from datamad to JIRA tickets for grants.</p>
+            <div class="row">
+                <div class="col">
+                    {% crispy form %}
+                </div>
+            </div>
+        {% endif %}
     </div>
 {% endblock content %}

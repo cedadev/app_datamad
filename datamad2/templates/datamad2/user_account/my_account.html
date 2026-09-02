@@ -15,9 +15,20 @@
                 <a class="nav-link" href="{% url 'datacentre' %}"><i class="fas fa-database"></i>&nbsp;Datacentre</a>
                 <a class="nav-link ml-4" href="{% url 'user_list' %}"><i
                         class="fas fa-users"></i>&nbsp;{{ user.data_centre.name }} Users</a>
-                <a class="nav-link ml-4" href="{% url 'issue_type' %}"><i class="fas fa-flag"></i>&nbsp;JIRA Issue
+                {% if user.data_centre == "CEDA" %}
+                    <a class="nav-link ml-4" href="{% url 'github_issue_type' %}"><i class="fas fa-flag"></i>&nbsp;Github Issue
                     Fields</a>
-                <a class="nav-link ml-4" href="{% url 'subtask_list' %}"><i class="fas fa-tasks"></i>&nbsp;JIRA Subtasks</a>
+                {% else %}
+                    <a class="nav-link ml-4" href="{% url 'jira_issue_type' %}"><i class="fas fa-flag"></i>&nbsp;JIRA Issue
+                    Fields</a>
+                {% endif %}
+
+                
+                {% if user.data_centre == "CEDA" %}
+                    <a class="nav-link ml-4" href="{% url 'Githubsubtask_list' %}"><i class="fas fa-tasks"></i>&nbsp;Github Subtasks</a>
+                {% else %}
+                    <a class="nav-link ml-4" href="{% url 'JIRAsubtask_list' %}"><i class="fas fa-tasks"></i>&nbsp;JIRA Subtasks</a>
+                {% endif %}
                 <a class="nav-link ml-4" href="{% url 'document_template_list' %}"><i class="fas fa-file-word"></i>&nbsp;Document
                     Templates</a>
                 <a class="nav-link ml-4" href="{% url 'data_format_list' %}"><i class="fas fa-stamp"></i>&nbsp;Data

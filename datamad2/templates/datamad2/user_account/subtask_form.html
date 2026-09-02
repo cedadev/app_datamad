@@ -4,7 +4,11 @@
 {% block breadcrumb_items %}
     <li class="breadcrumb-item"><a href="{% url 'grant_list' %}">Home</a></li>
     <li class="breadcrumb-item"><a href="{% url 'datacentre' %}">Datacentre</a></li>
-    <li class="breadcrumb-item"><a href="{% url 'subtask_list' %}">Subtasks</a></li>
+    {% if user.data_centre == "CEDA" %}
+        <li class="breadcrumb-item"><a href="{% url 'Githubsubtask_list' %}">Subtasks</a></li>
+    {% else %}
+        <li class="breadcrumb-item"><a href="{% url 'JIRAsubtask_list' %}">Subtasks</a></li>
+    {% endif %}
     <li class="breadcrumb-item active">New</li>
 {% endblock breadcrumb_items %}
 

@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-Django models relating to the JIRA connection.
+Django models relating to the Github projects connection.
 """
 __author__ = 'Richard Smith'
 __date__ = '10 Dec 2020'
@@ -19,7 +19,7 @@ from .grants import Grant
 
 # Python imports
 
-class JIRATicket(models.Model):
+class GithubTicket(models.Model):
     grant = models.ForeignKey(Grant, on_delete=models.CASCADE)
     datacentre = models.ForeignKey(DataCentre, on_delete=models.CASCADE)
     url = models.URLField()
@@ -28,14 +28,14 @@ class JIRATicket(models.Model):
         return self.url
 
 
-class JIRAIssueType(models.Model):
+class GithubIssueType(models.Model):
     """
-    Maps the datamad model fields to the fields in the Datacentre's JIRA
-    Data Management Tracking JIRA IssueType
+    Maps the datamad model fields to the fields in the Datacentre's Github
+    Data Management Tracking Github IssueType
     """
     datacentre = models.ForeignKey(DataCentre, on_delete=models.CASCADE)
     issuetype = models.IntegerField(
-        help_text='JIRA Data Management issue type ID. e.g. 10602',
+        help_text='Github Data Management issue type ID. e.g. 10602',
         blank=True,
         null=True,
         verbose_name='Issue Type Id'
@@ -45,7 +45,7 @@ class JIRAIssueType(models.Model):
         null=True,
         blank=True,
         on_delete=models.CASCADE,
-        help_text='User to set as the reporter for all JIRA issues. If left blank the reporter will be the user'
+        help_text='User to set as the reporter for all Github issues. If left blank the reporter will be the user'
                   ' that creates the issue.'
     )
     start_date_field = models.CharField(
@@ -199,14 +199,14 @@ class JIRAIssueType(models.Model):
 
 
     @property
-    def jira_issue_fields(self):
+    def github_issue_fields(self):
         issue_fields = {k: v for k, v in self.__dict__.items() if k.endswith('field') and v}
         return issue_fields
 
 
-class JIRASubtask(models.Model):
+class GithubSubtask(models.Model):
     """
-    Model to create a template for JIRA subtasks. These subtasks are Datacentre specific
+    Model to create a template for Github subtasks. These subtasks are Datacentre specific
     """
     data_centre = models.ForeignKey(to=DataCentre, on_delete=models.PROTECT, null=True, blank=True)
     name = models.CharField(max_length=200, blank=True, null=True)

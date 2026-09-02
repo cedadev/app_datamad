@@ -12,5 +12,6 @@ __contact__ = 'richard.d.smith@stfc.ac.uk'
 from .data_format import DataFormatListView, DataFormatUpdateCreateView, DataFormatDeleteView
 from .datacentre import MyAccountDatacentreView
 from .document_templating import DocumentTemplateListView, DocumentTemplateCreateView, DocumentTemplateUpdateView, DocumentTemplateDeleteView
-from .jira_issues import MyAccountDatacentreIssueTypeView, SubtaskListView, SubtaskUpdateCreateView, SubtaskDeleteView
+from .jira_issues import MyAccountDatacentreJIRAIssueTypeView, JIRASubtaskListView, JIRASubtaskUpdateCreateView, JIRASubtaskDeleteView
+from .github_issues import MyAccountDatacentreGithubIssueTypeView, GithubSubtaskListView, GithubSubtaskUpdateCreateView, GithubSubtaskDeleteView
 from .preservation_plan import PreservationPlanListView, PreservationPlanUpdateCreateView, PreservationPlanDeleteView

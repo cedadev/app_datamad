@@ -13,9 +13,15 @@
     <div class="col">
         <div class="row mb-4">
             <div class="col"><h4>Datacentre Subtasks</h4></div>
-            <div class="col"><a class="btn btn-primary float-right" href="{% url 'subtask_create' %}"><i
-                    class="fas fa-plus"></i>&nbsp;Add Task</a>
-            </div>
+            {% if user.data_centre == "CEDA" %}
+                <div class="col"><a class="btn btn-primary float-right" href="{% url 'Githubsubtask_create' %}"><i
+                        class="fas fa-plus"></i>&nbsp;Add Task</a>
+                </div>
+            {% else %}
+                <div class="col"><a class="btn btn-primary float-right" href="{% url 'JIRAsubtask_create' %}"><i
+                        class="fas fa-plus"></i>&nbsp;Add Task</a>
+                </div>
+            {% endif %}
         </div>
         <div class="row">
             <div class="col">

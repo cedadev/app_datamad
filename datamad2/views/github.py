@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-Views relating to creating JIRA tickets
+Views relating to creating Github projects tickets
 """
 __author__ = 'Richard Smith'
 __date__ = '10 Dec 2020'
@@ -9,9 +9,9 @@ __license__ = 'BSD - see LICENSE file in top-level package directory'
 __contact__ = 'richard.d.smith@stfc.ac.uk'
 
 # Datamad imports
-from datamad2.models import Grant, JIRATicket
+from datamad2.models import Grant, GithubTicket
 from datamad2.utils import rgetattr
-from datamad2.create_jira_issue import make_jira_issue
+from datamad2.create_github_issue import make_github_issue
 from .mixins import DatacentreAdminTestMixin
 from .generic import ObjectDeleteView
 
@@ -24,8 +24,9 @@ from django.utils.html import mark_safe
 from django.urls import reverse
 
 # Utility imports
-from jira_oauth.decorators import jira_access_token_required
-from jira.exceptions import JIRAError
+# TODO, Github equivalent of these imports?
+# from github_oauth.decorators import github_access_token_required
+# from github.exceptions import GithubError
 
 # Python imports
 import logging
@@ -35,17 +36,17 @@ logger = logging.getLogger(__name__)
 
 
 @login_required
-@jira_access_token_required
-def push_to_jira(request, pk):
+# @github_access_token_required # TODO, need github equivalent of this decorator?
+def push_to_github(request, pk):
     """
-    Create a JIRA ticket from a grant.
+    Create a Github ticket from a grant.
     Once the ticket is created, save a link to the ticket with the grant for easy retrieval
     :param request:
     :param pk:
     :return:
     """
     grant = get_object_or_404(Grant, pk=pk)
-    jira_required_fields = [('jiraissuetype.issuetype','jira_issue_type' ), ('jira_project','datacentre')]
+    github_required_fields = [('github_issuetype.issuetype','github_issue_type' ), ('github_project','datacentre')]
 
     # Make sure the user has a data centre
     if not request.user.data_centre:
@@ -54,24 +55,24 @@ def push_to_jira(request, pk):
                        f'have a Datacentre before you can perform this action')
         return redirect('grant_detail', pk=pk)
 
-    # Make sure the user's datacentre doesn't already have a JIRA ticket created
+    # Make sure the user's datacentre doesn't already have a Github ticket created
     try:
-        user_jira_ticket = grant.jiraticket_set.get(datacentre=request.user.data_centre)
+        user_github_ticket = grant.githubticket_set.get(datacentre=request.user.data_centre)
     except ObjectDoesNotExist:
         pass
     else:
-        if user_jira_ticket:
+        if user_github_ticket:
             messages.warning(request,
                              mark_safe(
-                                 'Your datacentre already has a JIRA ticket associated. '
-                                 f'<a href="{user_jira_ticket.url}" target="_blank">{user_jira_ticket.datacentre}</a> '
-                                 'If the ticket has been removed from JIRA, '
+                                 'Your datacentre already has a Github ticket associated. '
+                                 f'<a href="{user_github_ticket.url}" target="_blank">{user_github_ticket.datacentre}</a> '
+                                 'If the ticket has been removed from Github, '
                                  'ask an admin to remove the link in DataMAD and try again.'
                              ))
             return redirect('grant_detail', pk=pk)
 
     # Check for required fields in users datacentre
-    for field, view in jira_required_fields:
+    for field, view in github_required_fields:
         if not rgetattr(request.user.data_centre, field, None):
             messages.error(request,
                            mark_safe(
@@ -82,31 +83,31 @@ def push_to_jira(request, pk):
             return redirect('grant_detail', pk=pk)
 
     try:
-        issue = make_jira_issue(request, grant.importedgrant)
+        issue = make_github_issue(request, grant.importedgrant)
         link = issue.permalink()
 
         # Save the ticket link to the correct grant
         if link:
-            jira_ticket = JIRATicket(
+            github_ticket = GithubTicket(
                 grant=grant,
                 url=link,
                 datacentre=request.user.data_centre
             )
-            jira_ticket.save()
+            github_ticket.save()
 
-    except JIRAError as e:
+    except ValueError as e:
         messages.error(request,
-                       f'There was an error when trying to create the JIRA issue. {e.text}')
+                       f'There was an error when trying to create the Github issue. {e.text}')
         logger.error(e, exc_info=True)
 
     return redirect('grant_detail', pk=pk)
 
 
-class JIRATicketDeleteView(DatacentreAdminTestMixin, ObjectDeleteView):
+class GithubTicketDeleteView(DatacentreAdminTestMixin, ObjectDeleteView):
     """
-    Unlink the JIRA ticket URL from the grant
+    Unlink the Github ticket URL from the grant
     """
-    model = JIRATicket
+    model = GithubTicket
     pk_url_kwarg = 'jt_pk'
 
     def get_success_url(self):

@@ -19,6 +19,7 @@ class DataCentre(models.Model):
 
     name = models.CharField(max_length=100, null=True, unique=True, verbose_name='Datacentre Name')
     jira_project = models.CharField(max_length=100, blank=True, verbose_name='Data Management JIRA Project')
+    github_project = models.CharField(max_length=100, blank=True, verbose_name='Data Management Github Project')
 
     def __str__(self):
         return f"{self.name}"
@@ -26,6 +27,10 @@ class DataCentre(models.Model):
     @property
     def jiraissuetype(self):
         return self.jiraissuetype_set.first()
+
+    @property
+    def githubissuetype(self):
+        return self.githubissuetype_set.first()
 
 
 class UserManager(BaseUserManager):
