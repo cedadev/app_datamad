@@ -85,7 +85,7 @@ def make_github_issue(request, imported_grant): # TODO
     """
     github = get_github_client(request)
 
-    if (imported_grant.nerc_id is "") & (imported_grant.ukri_id is ""):
+    if (imported_grant.nerc_id == "") & (imported_grant.ukri_id == ""):
         issue_dict = {
             'project': str(request.user.data_centre.github_project),
             'summary': f'{imported_grant.grant_ref}:{imported_grant.title}',
@@ -152,7 +152,7 @@ def create_subtask(subtask, request, new_issue, imported_grant, reporter):
     else:
         ref_time = imported_grant.actual_start_date
 
-    if (imported_grant.nerc_id is "") & (imported_grant.ukri_id is ""):
+    if (imported_grant.nerc_id == "") & (imported_grant.ukri_id == ""):
         subtask_dict = {'project': str(request.user.data_centre.github_project),
                 'summary': f"{imported_grant.grant_ref}:{subtask.name}",
                 'description': '',

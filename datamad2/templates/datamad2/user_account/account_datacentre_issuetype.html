@@ -4,7 +4,7 @@
 {% block breadcrumb_items %}
     <li class="breadcrumb-item"><a href="{% url 'grant_list' %}">Home</a></li>
     <li class="breadcrumb-item active"><a href="{% url 'datacentre' %}">Datacentre</a></li>
-    {% if user.data_centre == "CEDA" %}
+    {% if user.data_centre.value == CEDA %}
         <li class="breadcrumb-item active">Github Issue Fields</li>
     {% else %}
         <li class="breadcrumb-item active">JIRA Issue Fields</li>
@@ -13,7 +13,7 @@
 
 {% block content %}
     <div class="col">
-        {% if user.data_centre == "CEDA" %}
+        {% if user.data_centre.value == CEDA %}
             <h4>Data Management Github Mapping</h4>
             <p>This form sets up the mapping between datamad and Github for pushing content from datamad to Github issues for grants.</p>
             <div class="row">

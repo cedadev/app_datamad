@@ -207,6 +207,17 @@
                         <th>Comments</th>
                         <td>{{ imported_grant.comments|default_if_none:"N/A" }} </td>
                     </tr>
+                    <tr>
+                        <th>Users datacentre (debug field) </th>
+                        <td>{{user.data_centre.value |default_if_none:"N/A" }} </td>
+                    </tr>
+                    <tr>
+                        <th>Users datacentre field type (debug field) </th>
+                        <td>{{user.data_centre.field.widget.input_type }} </td>
+                    </tr>
+
+
+                    
                 </table>
             </div>
         </div>
@@ -318,11 +329,15 @@
         </div>
         <div class="card mt-3">
             <div class="card-header">
-                <h4 class="card-title">JIRA/ Github Ticket Links</h4>
+                {% if user.data_centre.value == CEDA %}
+                    <h4 class="card-title">Github Ticket Links</h4>
+                {% else %}
+                    <h4 class="card-title">JIRA Ticket Links</h4>
+                {% endif %}
             </div>
             <div class="card-body">
                 <table class="table table-borderless">
-                    {% if user.data_centre == "CEDA" %}
+                    {% if user.data_centre.value == CEDA %}
                         {% for ticket in imported_grant.grant.githubticket_set.all %}
                             <tr>
                                 <td>
@@ -362,11 +377,11 @@
 
                         {% endfor %}
 
-                    </table>
-                    <a class="btn btn-primary w-100" title='Create JIRA ticket for your datacentre' data-toggle='tooltip'
-                    href="{% url 'jira_convert' pk=imported_grant.grant.pk %}">
-                        <i class="fas fa-plus"></i> Create JIRA Ticket</a>
-                {% endif %}
+                        </table>
+                        <a class="btn btn-primary w-100" title='Create JIRA ticket for your datacentre' data-toggle='tooltip'
+                        href="{% url 'jira_convert' pk=imported_grant.grant.pk %}">
+                            <i class="fas fa-plus"></i> Create JIRA Ticket</a>
+                    {% endif %}
             </div>
         </div>
         <div class="card mt-3">

@@ -13,7 +13,7 @@
     <div class="col">
         <div class="row mb-4">
             <div class="col"><h4>Datacentre Subtasks</h4></div>
-            {% if user.data_centre == "CEDA" %}
+            {% if user.data_centre.value == CEDA %}
                 <div class="col"><a class="btn btn-primary float-right" href="{% url 'Githubsubtask_create' %}"><i
                         class="fas fa-plus"></i>&nbsp;Add Task</a>
                 </div>
