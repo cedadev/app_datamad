@@ -31,6 +31,7 @@ django-jira-oauth = {git = "https://github.com/cedadev/django-jira-oauth.git", r
 fwtheme-django = {git = "https://github.com/cedadev/fwtheme-django.git", rev = "786021bdb6f34cf693d44e96803a5df7d88b76fd"}
 fwtheme-django-ceda-serv = {git = "https://github.com/cedadev/fwtheme-django-ceda-serv.git", rev = "4653d071d5a53e1ab0953b2a83cb1265cc05ab91"}
 orgtheme-datamad = {git = "https://github.com/cedadev/orgtheme-datamad.git", rev = "015dc5767f75b068a8883bf7380056e863be19a2"}
+githubetl = {git = "https://github.com/cedadev/ceda-jira-github-etl.git", rev = "726a3c449c7c120d3411801c1d1b147626e50dbf"}
 
 # Suspected main dependencies
 babel = "2.16.0"
@@ -54,6 +55,7 @@ django-unused-media = "0.2.2"
 docxcompose = "1.4.0"
 docxtpl = "0.18.0"
 elasticsearch = "8.18.1"
+httpx = "0.28.1"
 Jinja2 = "3.1.4"
 jira = "3.8.0"
 keyring = "25.4.1"
@@ -70,7 +72,7 @@ python-docx = "1.1.2"
 pytz = "2024.2"
 pywin32-ctypes = "0.2.3"
 pyyaml = "6.0.2"
-requests = "2.32.3"
+requests = "<3.0.0"
 setuptools = "75.1.0"
 six = "1.16.0"
 sqlparse = "0.5.1"
@@ -87,5 +89,5 @@ ignore_missing_imports = true
 packages = "datamad2,datamad2_api,datamadsite"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"

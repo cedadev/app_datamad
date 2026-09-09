@@ -207,16 +207,6 @@
                         <th>Comments</th>
                         <td>{{ imported_grant.comments|default_if_none:"N/A" }} </td>
                     </tr>
-                    <tr>
-                        <th>Users datacentre (debug field) </th>
-                        <td>{{user.data_centre.value |default_if_none:"N/A" }} </td>
-                    </tr>
-                    <tr>
-                        <th>Users datacentre field type (debug field) </th>
-                        <td>{{user.data_centre.field.widget.input_type }} </td>
-                    </tr>
-
-
                     
                 </table>
             </div>

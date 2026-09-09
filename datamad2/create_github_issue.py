@@ -2,6 +2,9 @@ from django.conf import settings
 from django.urls import reverse
 import datetime
 import logging
+import urllib
+import httpx
+import githubetl
 
 # TODO, make this work with GitHub projects instead of JIRA.
 # This is a copy of create_jira_issue.py with the necessary changes
@@ -35,18 +38,32 @@ FIELD_MAPPING = {
 }
 
 
-def get_github_client(request):
+def get_github_client():
     """
     Returns a provisioned GitHub client # TODO
     """
-    oauth_dict = {
-        'access_token': request.session.get('github_access_token'),
-        'access_token_secret': request.session.get('github_access_token_secret'),
-        'consumer_key': settings.GITHUB_CONSUMER_KEY,
-        'key_cert': settings.GITHUB_PRIVATE_RSA_KEY
-    }
 
-    return settings.GITHUB_SERVER, oauth_dict # TODO
+    project = getattr(settings, "GITHUB_PROJECT_NAME", "")
+    token = getattr(settings, "GITHUB_ISSUE_TOKEN")
+
+    p_project = urllib.parse.urlparse(project)
+    server = f"{p_project.scheme}://{p_project.hostname}"
+    project = p_project.path[1:]
+    if server == "https://github.com":
+        headers = {
+            "Accept": "application/vnd.github+json",
+            "Authorization": f"Bearer {token}",
+        }
+        endpoint = f"https://api.github.com/repos/{project}/issues"
+    else:
+        headers = {"PRIVATE-TOKEN": token}
+        endpoint = f"{server}/api/v4/projects/{p_project.path}/issues"
+
+    return headers, endpoint
+
+@property
+def github_prop(self):
+    return self.endpoint.startswith("https://api.github.com")
 
 
 def map_datamad_to_github(request, imported_grant):
@@ -76,14 +93,64 @@ def map_datamad_to_github(request, imported_grant):
     return issue_dict
 
 
-def make_github_issue(request, imported_grant): # TODO
+def search_github_issues(nerc_id, issuetype, request):
     """
-    Convert a grant into a GitHub issue
-    :param request: Django request object
-    :param imported_grant:
-    :return: GitHub issue. Either a newly created one or the first result from the search
+    Search for existing GitHub issues based on nerc_id and issuetype
+
+    :param nerc_id: NERC ID of the grant
+    :param issuetype: GitHub issue type
+    :param request: WSGI request
+    :return: List of matching GitHub issues
     """
-    github = get_github_client(request)
+    headers, endpoint = get_github_client()
+    search_query = f'summary~{nerc_id} AND issuetype={issuetype}'
+    search_url = f"{endpoint}?q={urllib.parse.quote(search_query)}"
+
+    response = httpx.get(search_url, headers=headers)
+    response.raise_for_status()
+
+    return response.json().get('items', [])
+
+def github_create_issue(fields, title, body, labels):
+    """
+    Create a new GitHub issue with the provided fields
+
+    :param fields: Dictionary of fields for the new issue
+    :param title: Title of the new issue
+    :param body: Body of the new issue
+    :param labels: List of labels for the new issue
+    :return: Created GitHub issue
+    """
+    headers, endpoint = get_github_client()
+    response = httpx.post(endpoint, json=fields, headers=headers)
+    response.raise_for_status()
+
+    labels = [str(label) for label in labels]
+    data = {"title": title, "description": body, "labels": labels}
+    if github_prop:
+        data = {"title": title, "body": body, "labels": labels}
+    r = httpx.post(endpoint, json=data, headers=headers)
+    r.raise_for_status()
+
+    return response.json()
+
+def github_add_simple_link(issue, link):
+    """
+    Add a simple link to a GitHub issue
+
+    :param issue: GitHub issue object
+    :param link: Dictionary containing the link details
+    :return: Updated GitHub issue
+    """
+    headers, endpoint = get_github_client()
+    response = httpx.post(f"{endpoint}/{issue['id']}/links", json=link, headers=headers)
+    response.raise_for_status()
+
+    return response.json()
+
+def make_github_issue(request, imported_grant) -> bool:
+
+    headers, endpoint = get_github_client()
 
     if (imported_grant.nerc_id == "") & (imported_grant.ukri_id == ""):
         issue_dict = {
@@ -108,18 +175,13 @@ def make_github_issue(request, imported_grant): # TODO
 
     # Check if issue already exists
     # Check the issuetype and limit the fields returned to save time and data transfer
-    results = github.search_issues(
-        f'summary~{nerc_id} AND issuetype={request.user.data_centre.githubissuetype.issuetype}',
-        fields=[
-            'issuetype',
-            'summary'
-        ]
-    )
+    results = search_github_issues(nerc_id, request.user.data_centre.githubissuetype.issuetype, request)
+
     reporter = request.user.data_centre.githubissuetype.reporter
 
     # Create a new one if none found or return first hit (there should only be one)
     if not results:
-        new_issue = github.create_issue(fields=issue_dict)
+        new_issue = github_create_issue(fields=issue_dict)
 
         if reporter:
             new_issue.update(reporter={'name': str(reporter)})
@@ -128,48 +190,11 @@ def make_github_issue(request, imported_grant): # TODO
         datamad_permalink = request.build_absolute_uri(reverse('grant_detail', kwargs={'pk': imported_grant.grant.pk}))
 
         # Add backreference to datamad
-        github.add_simple_link(new_issue, {
+        github_add_simple_link(new_issue, {
             'url': datamad_permalink,
             'title': f'View grant ref: {imported_grant.grant_ref}, NERC ID: {imported_grant.nerc_id} in Datamad'
         })
-
-        # create subtasks
-        subtasks = request.user.data_centre.subtask_set.all()
-        for task in subtasks:
-            create_subtask(task, request, new_issue, imported_grant, reporter)
-
     else:
         new_issue = results[0]
 
     return new_issue
-
-
-def create_subtask(subtask, request, new_issue, imported_grant, reporter):
-    github = get_github_client(request)
-
-    if subtask.ref_time == 'end_date':
-        ref_time = imported_grant.actual_end_date
-    else:
-        ref_time = imported_grant.actual_start_date
-
-    if (imported_grant.nerc_id == "") & (imported_grant.ukri_id == ""):
-        subtask_dict = {'project': str(request.user.data_centre.github_project),
-                'summary': f"{imported_grant.grant_ref}:{subtask.name}",
-                'description': '',
-                'issuetype': {'name': 'Sub-Task'},
-                'parent': {'key': new_issue.key},
-                'customfield_11660': str(imported_grant.actual_start_date),  # grant start date
-                'duedate': str(ref_time + datetime.timedelta(weeks=subtask.schedule_time))}
-    else:
-        subtask_dict = {'project': str(request.user.data_centre.github_project),
-                        'summary': f"{imported_grant.nerc_id}:{subtask.name}",
-                        'description': '',
-                        'issuetype': {'name': 'Sub-Task'},
-                        'parent': {'key': new_issue.key},
-                        'customfield_11660': str(imported_grant.actual_start_date),  # grant start date
-                        'duedate': str(ref_time + datetime.timedelta(weeks=subtask.schedule_time))}
-
-    subtask = github.create_issue(fields=subtask_dict)
-
-    if reporter:
-        subtask.update(reporter={'name': str(reporter)})

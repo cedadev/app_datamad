@@ -46,7 +46,7 @@ def push_to_github(request, pk):
     :return:
     """
     grant = get_object_or_404(Grant, pk=pk)
-    github_required_fields = [('github_issuetype.issuetype','github_issue_type' ), ('github_project','datacentre')]
+    github_required_fields = [('githubissuetype.project_name','github_issue_type' ), ('github_project','datacentre')]
 
     # Make sure the user has a data centre
     if not request.user.data_centre:
