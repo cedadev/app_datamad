@@ -1,10 +1,10 @@
 from django.conf import settings
 from django.urls import reverse
-import datetime
 import logging
 import urllib
 import httpx
-import githubetl
+import datetime
+from githubetl import get_repository_id, create_issue, update_custom_field, get_type_ids, update_issue_type, add_issue_to_project, get_user_ids, get_project_id, get_field_ids, calculate_dmp_due_date
 
 # TODO, make this work with GitHub projects instead of JIRA.
 # This is a copy of create_jira_issue.py with the necessary changes
@@ -61,37 +61,132 @@ def get_github_client():
 
     return headers, endpoint
 
+
 @property
 def github_prop(self):
     return self.endpoint.startswith("https://api.github.com")
 
 
-def map_datamad_to_github(request, imported_grant):
+def create_links(request, imported_grant):
+    # Create placeholder links and complete DataMad link.
+    external_links = ""
+    issue_data_links = ["Help Scout", "Datamad", "DSW"]
+
+    for link in issue_data_links:
+        if "Help Scout" in link:
+            link_title = "Help Scout"
+            external_links += f"- [{link_title}]({""})\n"
+        elif "Datamad" in link:
+            link_title = "DataMad"
+            link_url = request.build_absolute_uri(reverse('grant_detail', kwargs={'pk': imported_grant.grant.pk}))
+            external_links += f"- [{link_title}]({link_url})\n"
+        elif "DSW" in link:
+            link_title = "DSW"
+            external_links += f"- [{link_title}]({""})\n"
+
+    return 
+
+def create_issue_body(request, imported_grant):
     """
-    Map datamad fields to GitHub issue fields
+    Create markdown body for GitHub issue based on imported grant data.
 
     :param request: WSGI request
     :param imported_grant: Imported grant object for use with the evaluation function
-    :return: issue_dict for merging
+    :return: body for GitHub issue
     """
 
-    issue_dict = {}
+    # Build external links
+    external_links = create_links(imported_grant, request)
 
-    for field, value in request.user.data_centre.githubissuetype.github_issue_fields.items(): # TODO
-        mapped_datamad_field = FIELD_MAPPING.get(field)
-        if mapped_datamad_field:
-            if field == 'primary_datacentre_field':
-                issue_dict[value] = {'value': eval(mapped_datamad_field)}
-            else:
+    #Extract abstract, or provide a default message if not available
+    abstract = imported_grant.abstract if imported_grant.abstract else "No abstract provided."
 
-                # Catch situations where the evaluation string has a none somewhere on it's nested path
-                try:
-                    issue_dict[value] = eval(mapped_datamad_field)
-                except AttributeError as e:
-                    logger.debug(f'Could not evaluate {mapped_datamad_field}: {e}')
+    # Build issue body
+    body = f"""# Links
+    {external_links}- [Dataset record]()
+    - [Project record]()
+    - [Instrument/Computation/Platform record]()
+    - [Collection record]()
 
-    return issue_dict
+    # Tasks
+    ## DMP in progress
+    ### DMP setup
+    - [ ] Claim grant & create issue (DataMad)
+    - [ ] If clearly no archival data: 
+      - [ ] Update *Will grant produce data* field (DataMad)
+      - [ ] Update *Will grant produce data* field, change status to *No archival data* & close issue (GitHub)
+    - [ ] Set up DMP (DSW)
+    - [ ] Create new conversation & send DMP link (saved reply 01.01) (Help Scout)
+    - [ ] Link conversation to GitHub issue (Help Scout)
+    - [ ] Update *Date contacted PI* field (DataMad & GitHub)
+    - [ ] ⏰ Add comment to set first chase reminder (GitHub): /remind me to send the first DMP chase if no response in 6 weeks
 
+    ### DMP comms
+    - [ ] 👋 If no response in 6 weeks, send first chase (saved reply 01.02) (Help Scout)
+    - [ ] ⏰ Add comment to set second chase reminder (GitHub): /remind me to send the second DMP chase if no response in 4 weeks
+    - [ ] 👋 If no response in 4 weeks, send second chase (saved reply 01.03) (Help Scout) 
+    - [ ] ⏰ Add comment to set escalate to NERC reminder (GitHub): /remind me to escalate this to the NERC grants team if no response in 2 weeks
+    - [ ] Currently supporting PI to complete DMP
+    - [ ] 👋 If no response in 2 weeks, change status to *Escalate to NERC* (GitHub)
+
+    ### DMP completion
+    - [ ] Send DMP agreed email (saved reply 02.01) (Help Scout)
+    - [ ] Upload DMP (DataMad)
+    - [ ] Update *Will grant produce data* & *DMP agreed* fields (DataMad & GitHub)
+    - [ ] Change status to *Pre-delivery comms* (GitHub)
+
+    ## Pre-delivery comms
+    - [ ] 👋 Send annual check-in 1 (saved reply 03.01) (Help Scout)
+    - [ ] 👋 Send annual check-in 2 (saved reply 03.01) (Help Scout)
+    - [ ] 👋 Send annual check-in 3 (saved reply 03.01) (Help Scout)
+    - [ ] 👋 Check if *Actual end date* fields match (DataMad & GitHub), and then either: 
+      - [ ] Send 6-month check-in (saved reply 03.02) (Help Scout)
+      - [ ] Or update *Actual end date* field (GitHub)
+    - [ ] 👋 Check if *Actual end date* fields match (DataMad & GitHub), and then either:
+      - [ ] Send data due email (saved reply 03.03) (Help Scout)
+      - [ ] Or update *Actual end date* field (GitHub)
+    - [ ] Change status to *Data due* (GitHub)
+
+    ## Data due
+    - [ ] Update *Data delivery expected* field (GitHub)
+    - [ ] Create sub-issue for each dataset (GitHub)
+    - [ ] ⏰ Set any reminders as needed (GitHub)
+    - [ ] When data start to arrive, change status to *Archiving in progress* (GitHub)
+
+    ## Archiving in progress
+    - [ ] Data starting to arrive & MOLES records in progress
+    - [ ] Complete all tasks in dataset sub-issue(s) (GitHub)
+    - [ ] Confirm with PI that all data have been sent (Help Scout)
+    - [ ] Update *Datasets delivered* (DataMad)
+    - [ ] Flag delivery as ingested (Arrivals)
+    - [ ] Delete data using arrivals_deleter (Arrivals)
+    - [ ] Send completion confirmation (saved reply 05.01) (Help Scout)
+    - [ ] Change status to *Archiving completed* (GitHub)
+
+    ## No archival data
+    - [ ] Upload DMP confirming no data (DataMad)
+    - [ ] Send completion confirmation (saved reply 02.02) (Help Scout)
+
+    ## Escalate to NERC
+    - [ ] Report grant to NERC grants team (saved reply 01.04) (Help Scout)
+    - [ ] PI responsive after escalation
+    - [ ] PI unresponsive, being handled by NERC
+
+    ## Archiving completed
+    🎉 All tasks completed!
+
+    ---
+    <details>
+    <summary>Project abstract</summary>
+    {abstract}
+    </details>
+
+    # TODO: Add subtasks to GitHub issues?
+    """
+    # Remove chunks of four whitespaces from body
+    body = body.replace("    ", "")
+
+    return body
 
 def search_github_issues(nerc_id, issuetype, request):
     """
@@ -111,46 +206,21 @@ def search_github_issues(nerc_id, issuetype, request):
 
     return response.json().get('items', [])
 
-def github_create_issue(fields, title, body, labels):
+
+def make_github_issue(request, imported_grant, user) -> bool:
     """
-    Create a new GitHub issue with the provided fields
-
-    :param fields: Dictionary of fields for the new issue
-    :param title: Title of the new issue
-    :param body: Body of the new issue
-    :param labels: List of labels for the new issue
-    :return: Created GitHub issue
+    Convert a grant into a GitHub issue
     """
-    headers, endpoint = get_github_client()
-    response = httpx.post(endpoint, json=fields, headers=headers)
-    response.raise_for_status()
-
-    labels = [str(label) for label in labels]
-    data = {"title": title, "description": body, "labels": labels}
-    if github_prop:
-        data = {"title": title, "body": body, "labels": labels}
-    r = httpx.post(endpoint, json=data, headers=headers)
-    r.raise_for_status()
-
-    return response.json()
-
-def github_add_simple_link(issue, link):
-    """
-    Add a simple link to a GitHub issue
-
-    :param issue: GitHub issue object
-    :param link: Dictionary containing the link details
-    :return: Updated GitHub issue
-    """
-    headers, endpoint = get_github_client()
-    response = httpx.post(f"{endpoint}/{issue['id']}/links", json=link, headers=headers)
-    response.raise_for_status()
-
-    return response.json()
-
-def make_github_issue(request, imported_grant) -> bool:
 
     headers, endpoint = get_github_client()
+    body = create_issue_body(request, imported_grant)
+
+    gh_token = 1
+    owner = 2
+    repo = 3
+    project_name = 4
+
+    repository_id = get_repository_id(owner, repo, headers)
 
     if (imported_grant.nerc_id == "") & (imported_grant.ukri_id == ""):
         issue_dict = {
@@ -171,30 +241,92 @@ def make_github_issue(request, imported_grant) -> bool:
 
         nerc_id = imported_grant.nerc_id.replace('/', '\\u002f')
 
-    issue_dict.update(map_datamad_to_github (request, imported_grant))
+    # Create issue
+    # TODO, temp variables
+    status_mapped = ""
+    ukri_id = imported_grant.ukri_id
+    title = f"{imported_grant.nerc_id}:{imported_grant.title}"
+    pi_name = imported_grant.grant_holder
+    pi_email = imported_grant.grant_holder_email
+    actual_start_date = imported_grant.actual_start_date
+    actual_end_date = imported_grant.actual_end_date
+    dmp_due = imported_grant.dmp_due
+    mapped_usernames = [request.user.github_username]  # TODO, map to GitHub usernames
 
-    # Check if issue already exists
-    # Check the issuetype and limit the fields returned to save time and data transfer
-    results = search_github_issues(nerc_id, request.user.data_centre.githubissuetype.issuetype, request)
+    assignee_ids = get_user_ids(owner, repo, mapped_usernames, headers)
+    gh_issue = create_issue(repository_id, title, body, headers, assignee_ids, None)
+    print(f"Created issue: {gh_issue['url']}")
 
-    reporter = request.user.data_centre.githubissuetype.reporter
+    # Attempt to set the repository-level issue type to 'Project'
+    try:
+        type_ids = get_type_ids(owner, repo, ["Project"], headers)
+        if type_ids:
+            type_id = type_ids[0]
+            try:
+                update_issue_type(gh_issue["id"], type_id, headers)
+                print(f"Set issue type to 'Project' for {gh_issue['url']}")
+            except Exception as e:
+                print(f"Warning: failed to set issue type for {gh_issue['url']}: {e}")
+        else:
+            print("Warning: repository has no matching issue type 'Project'.")
+    except Exception as e:
+        print(f"Warning: could not fetch issue type ids: {e}")
+        item_id = add_issue_to_project(project_id, gh_issue["id"], headers)
+        custom_values = {
+            "status": status_mapped,
+            "nerc_id": nerc_id,
+            "ukri_id": ukri_id,
+            "data_centre": "CEDA",
+            "pi_name": pi_name,
+            "pi_email": pi_email,
+            "actual_start_date": actual_start_date,
+            "actual_end_date": actual_end_date,
+            "dmp_due": dmp_due
+        }
 
-    # Create a new one if none found or return first hit (there should only be one)
-    if not results:
-        new_issue = github_create_issue(fields=issue_dict)
+        for key, field_info in field_ids.items():
+            value = custom_values.get(key, "")
+            update_custom_field(project_id, item_id, field_info, value, headers)
 
-        if reporter:
-            new_issue.update(reporter={'name': str(reporter)})
+    headers = {"Authorization": f"Bearer {gh_token}", "Content-Type": "application/json"}
 
-        # Generate back-reference to datamad
-        datamad_permalink = request.build_absolute_uri(reverse('grant_detail', kwargs={'pk': imported_grant.grant.pk}))
+    print("Fetching repository ID...")
+    repository_id = get_repository_id(owner, repo, headers)
+    print(f"Repository ID: {repository_id}")
 
-        # Add backreference to datamad
-        github_add_simple_link(new_issue, {
-            'url': datamad_permalink,
-            'title': f'View grant ref: {imported_grant.grant_ref}, NERC ID: {imported_grant.nerc_id} in Datamad'
-        })
-    else:
-        new_issue = results[0]
+    print("Fetching project ID...")
+    project_id = get_project_id(owner, repo, project_name, headers)
+    print(f"Project ID: {project_id}")
 
-    return new_issue
+    print("Fetching field IDs...")
+    field_name_map = {
+        "type": "Project",
+        "status": "Status",
+        "actual_start_date": "Actual start date",
+        "dmp_due": "DMP due",
+        "data_centre": "Data centre",
+        "actual_end_date": "Actual end date",
+        "nerc_id": "NERC ID",
+        "ukri_id": "UKRI ID",
+        "pi_name": "PI name",
+        "pi_email": "PI email",
+        "labels": "Labels"
+    }
+    internal_keys = [
+        "status",
+        "actual_start_date",
+        "dmp_due",
+        "data_centre",
+        "actual_end_date",
+        "nerc_id",
+        "ukri_id",
+        "pi_name",
+        "pi_email",
+    ]
+    mapped_field_names = [field_name_map.get(name, name) for name in internal_keys]
+    field_info_map = get_field_ids(project_id, mapped_field_names, headers)
+    field_ids = dict(zip(internal_keys, field_info_map.values()))
+
+    for key, field_info in field_ids.items():
+        value = custom_values.get(key, "")
+        update_custom_field(project_id, item_id, field_info, value, headers)

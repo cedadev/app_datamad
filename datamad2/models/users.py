@@ -80,6 +80,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         unique=True,
     )
     username = models.EmailField(max_length=255)
+    github_username = models.CharField(max_length=100, blank=True, null=True, verbose_name='Github Username')
     data_centre = models.ForeignKey('DataCentre', on_delete=models.SET_NULL, null=True, blank=True, to_field='name')
     preferred_facets = models.TextField(null=True)
     preferred_sorting = models.TextField(null=True)
