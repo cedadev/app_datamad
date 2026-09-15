@@ -50,7 +50,7 @@ class UserEditForm(CrispySubmitMixin, forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email', 'is_admin')
+        fields = ('first_name', 'last_name', 'email', 'github_username', 'is_admin')
         exclude = ('password',)
 
 

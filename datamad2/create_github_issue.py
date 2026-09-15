@@ -4,7 +4,9 @@ import logging
 import urllib
 import httpx
 import datetime
-from githubetl import get_repository_id, create_issue, update_custom_field, get_type_ids, update_issue_type, add_issue_to_project, get_user_ids, get_project_id, get_field_ids, calculate_dmp_due_date
+from githubetl import jira_to_github
+
+# get_repository_id, create_issue, update_custom_field, get_type_ids, update_issue_type, add_issue_to_project, get_user_ids, get_project_id, get_field_ids, calculate_dmp_due_date
 
 # TODO, make this work with GitHub projects instead of JIRA.
 # This is a copy of create_jira_issue.py with the necessary changes
@@ -220,7 +222,7 @@ def make_github_issue(request, imported_grant, user) -> bool:
     repo = 3
     project_name = 4
 
-    repository_id = get_repository_id(owner, repo, headers)
+    repository_id = jira_to_github.get_repository_id(owner, repo, headers)
 
     if (imported_grant.nerc_id == "") & (imported_grant.ukri_id == ""):
         issue_dict = {
@@ -253,17 +255,17 @@ def make_github_issue(request, imported_grant, user) -> bool:
     dmp_due = imported_grant.dmp_due
     mapped_usernames = [request.user.github_username]  # TODO, map to GitHub usernames
 
-    assignee_ids = get_user_ids(owner, repo, mapped_usernames, headers)
-    gh_issue = create_issue(repository_id, title, body, headers, assignee_ids, None)
+    assignee_ids = jira_to_github.get_user_ids(owner, repo, mapped_usernames, headers)
+    gh_issue = jira_to_github.create_issue(repository_id, title, body, headers, assignee_ids, None)
     print(f"Created issue: {gh_issue['url']}")
 
     # Attempt to set the repository-level issue type to 'Project'
     try:
-        type_ids = get_type_ids(owner, repo, ["Project"], headers)
+        type_ids = jira_to_github.get_type_ids(owner, repo, ["Project"], headers)
         if type_ids:
             type_id = type_ids[0]
             try:
-                update_issue_type(gh_issue["id"], type_id, headers)
+                jira_to_github.update_issue_type(gh_issue["id"], type_id, headers)
                 print(f"Set issue type to 'Project' for {gh_issue['url']}")
             except Exception as e:
                 print(f"Warning: failed to set issue type for {gh_issue['url']}: {e}")
@@ -271,7 +273,7 @@ def make_github_issue(request, imported_grant, user) -> bool:
             print("Warning: repository has no matching issue type 'Project'.")
     except Exception as e:
         print(f"Warning: could not fetch issue type ids: {e}")
-        item_id = add_issue_to_project(project_id, gh_issue["id"], headers)
+        item_id = jira_to_github.add_issue_to_project(project_id, gh_issue["id"], headers)
         custom_values = {
             "status": status_mapped,
             "nerc_id": nerc_id,
@@ -286,16 +288,16 @@ def make_github_issue(request, imported_grant, user) -> bool:
 
         for key, field_info in field_ids.items():
             value = custom_values.get(key, "")
-            update_custom_field(project_id, item_id, field_info, value, headers)
+            jira_to_github.update_custom_field(project_id, item_id, field_info, value, headers)
 
     headers = {"Authorization": f"Bearer {gh_token}", "Content-Type": "application/json"}
 
     print("Fetching repository ID...")
-    repository_id = get_repository_id(owner, repo, headers)
+    repository_id = jira_to_github.get_repository_id(owner, repo, headers)
     print(f"Repository ID: {repository_id}")
 
     print("Fetching project ID...")
-    project_id = get_project_id(owner, repo, project_name, headers)
+    project_id = jira_to_github.get_project_id(owner, repo, project_name, headers)
     print(f"Project ID: {project_id}")
 
     print("Fetching field IDs...")
@@ -324,9 +326,9 @@ def make_github_issue(request, imported_grant, user) -> bool:
         "pi_email",
     ]
     mapped_field_names = [field_name_map.get(name, name) for name in internal_keys]
-    field_info_map = get_field_ids(project_id, mapped_field_names, headers)
+    field_info_map = jira_to_github.get_field_ids(project_id, mapped_field_names, headers)
     field_ids = dict(zip(internal_keys, field_info_map.values()))
 
     for key, field_info in field_ids.items():
         value = custom_values.get(key, "")
-        update_custom_field(project_id, item_id, field_info, value, headers)
+        jira_to_github.update_custom_field(project_id, item_id, field_info, value, headers)

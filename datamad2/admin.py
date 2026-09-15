@@ -92,7 +92,7 @@ class UserAdmin(BaseUserAdmin):
     ordering = ('email',)
     list_filter = ('data_centre','is_admin')
     fieldsets = (
-        (None, {'fields': ('email', 'first_name', 'last_name', 'password', 'data_centre')}),
+        (None, {'fields': ('email', 'first_name', 'last_name', 'github_username', 'password', 'data_centre')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_admin', 'is_superuser', 'groups','user_permissions')}),
         (('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
