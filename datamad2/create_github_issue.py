@@ -78,7 +78,7 @@ def create_links(request, imported_grant):
             link_title = "DSW"
             external_links += f"- [{link_title}]({""})\n"
 
-    return 
+    return external_links
 
 def create_issue_body(request, imported_grant):
     """
@@ -90,7 +90,7 @@ def create_issue_body(request, imported_grant):
     """
 
     # Build external links
-    external_links = create_links(imported_grant, request)
+    external_links = create_links(request, imported_grant)
 
     #Extract abstract, or provide a default message if not available
     abstract = imported_grant.abstract if imported_grant.abstract else "No abstract provided."
