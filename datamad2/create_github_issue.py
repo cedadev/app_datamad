@@ -42,26 +42,18 @@ FIELD_MAPPING = {
 
 def get_github_client():
     """
-    Returns a provisioned GitHub client # TODO
+    Returns arguments required for a provisioned GitHub client
     """
+    gh_token = getattr(settings, "GITHUB_ISSUE_TOKEN")
+    owner = getattr(settings, "GITHUB_OWNER")
+    repo = getattr(settings, "GITHUB_REPO")
+    project_name = getattr(settings, "GITHUB_PROJECT_NAME")
 
-    project = getattr(settings, "GITHUB_PROJECT_NAME", "")
-    token = getattr(settings, "GITHUB_ISSUE_TOKEN")
+    gh_args_dict = {"gh_token": gh_token, "owner": owner, "repo": repo, "project_name": project_name}
 
-    p_project = urllib.parse.urlparse(project)
-    server = f"{p_project.scheme}://{p_project.hostname}"
-    project = p_project.path[1:]
-    if server == "https://github.com":
-        headers = {
-            "Accept": "application/vnd.github+json",
-            "Authorization": f"Bearer {token}",
-        }
-        endpoint = f"https://api.github.com/repos/{project}/issues"
-    else:
-        headers = {"PRIVATE-TOKEN": token}
-        endpoint = f"{server}/api/v4/projects/{p_project.path}/issues"
+    headers = {"Authorization": f"Bearer {gh_token}", "Content-Type": "application/json"}
 
-    return headers, endpoint
+    return gh_args_dict, headers
 
 
 @property
@@ -190,39 +182,15 @@ def create_issue_body(request, imported_grant):
 
     return body
 
-def search_github_issues(nerc_id, issuetype, request):
-    """
-    Search for existing GitHub issues based on nerc_id and issuetype
-
-    :param nerc_id: NERC ID of the grant
-    :param issuetype: GitHub issue type
-    :param request: WSGI request
-    :return: List of matching GitHub issues
-    """
-    headers, endpoint = get_github_client()
-    search_query = f'summary~{nerc_id} AND issuetype={issuetype}'
-    search_url = f"{endpoint}?q={urllib.parse.quote(search_query)}"
-
-    response = httpx.get(search_url, headers=headers)
-    response.raise_for_status()
-
-    return response.json().get('items', [])
-
-
-def make_github_issue(request, imported_grant, user) -> bool:
+def make_github_issue(request, imported_grant) -> bool:
     """
     Convert a grant into a GitHub issue
     """
 
-    headers, endpoint = get_github_client()
+    github_args, headers= get_github_client()
     body = create_issue_body(request, imported_grant)
 
-    gh_token = 1
-    owner = 2
-    repo = 3
-    project_name = 4
-
-    repository_id = jira_to_github.get_repository_id(owner, repo, headers)
+    repository_id = jira_to_github.get_repository_id(github_args["owner"], github_args["repo"], headers)
 
     if (imported_grant.nerc_id == "") & (imported_grant.ukri_id == ""):
         issue_dict = {
@@ -233,6 +201,7 @@ def make_github_issue(request, imported_grant, user) -> bool:
         }
 
         nerc_id = imported_grant.grant_ref.replace('/', '\\u002f')
+        ukri_id = imported_grant.grant_ref.replace('/', '\\u002f')
     else:
         issue_dict = {
             'project': str(request.user.data_centre.github_project),
@@ -242,26 +211,27 @@ def make_github_issue(request, imported_grant, user) -> bool:
         }
 
         nerc_id = imported_grant.nerc_id.replace('/', '\\u002f')
+        ukri_id = imported_grant.ukri_id
 
     # Create issue
     # TODO, temp variables
     status_mapped = ""
+    data_centre = request.user.data_centre.name
     ukri_id = imported_grant.ukri_id
     title = f"{imported_grant.nerc_id}:{imported_grant.title}"
     pi_name = imported_grant.grant_holder
     pi_email = imported_grant.grant_holder_email
     actual_start_date = imported_grant.actual_start_date
     actual_end_date = imported_grant.actual_end_date
-    dmp_due = imported_grant.dmp_due
+    dmp_due = imported_grant.dmp_due # TODO, this should be calculated based on the grant's start date and the DMP due period.
     mapped_usernames = [request.user.github_username]  # TODO, map to GitHub usernames
 
-    assignee_ids = jira_to_github.get_user_ids(owner, repo, mapped_usernames, headers)
+    assignee_ids = jira_to_github.get_user_ids(github_args["owner"], github_args["repo"], mapped_usernames, headers)
     gh_issue = jira_to_github.create_issue(repository_id, title, body, headers, assignee_ids, None)
-    print(f"Created issue: {gh_issue['url']}")
 
     # Attempt to set the repository-level issue type to 'Project'
     try:
-        type_ids = jira_to_github.get_type_ids(owner, repo, ["Project"], headers)
+        type_ids = jira_to_github.get_type_ids(github_args["owner"], github_args["repo"], ["Project"], headers)
         if type_ids:
             type_id = type_ids[0]
             try:
@@ -273,12 +243,12 @@ def make_github_issue(request, imported_grant, user) -> bool:
             print("Warning: repository has no matching issue type 'Project'.")
     except Exception as e:
         print(f"Warning: could not fetch issue type ids: {e}")
-        item_id = jira_to_github.add_issue_to_project(project_id, gh_issue["id"], headers)
+        item_id = jira_to_github.add_issue_to_project(github_args["owner"], github_args["repo"], gh_issue["id"], headers)
         custom_values = {
             "status": status_mapped,
             "nerc_id": nerc_id,
             "ukri_id": ukri_id,
-            "data_centre": "CEDA",
+            "data_centre": data_centre,
             "pi_name": pi_name,
             "pi_email": pi_email,
             "actual_start_date": actual_start_date,
@@ -290,14 +260,14 @@ def make_github_issue(request, imported_grant, user) -> bool:
             value = custom_values.get(key, "")
             jira_to_github.update_custom_field(project_id, item_id, field_info, value, headers)
 
-    headers = {"Authorization": f"Bearer {gh_token}", "Content-Type": "application/json"}
+    headers = {"Authorization": f"Bearer {github_args['gh_token']}", "Content-Type": "application/json"}
 
     print("Fetching repository ID...")
-    repository_id = jira_to_github.get_repository_id(owner, repo, headers)
+    repository_id = jira_to_github.get_repository_id(github_args["owner"], github_args["repo"], headers)
     print(f"Repository ID: {repository_id}")
 
     print("Fetching project ID...")
-    project_id = jira_to_github.get_project_id(owner, repo, project_name, headers)
+    project_id = jira_to_github.get_project_id(github_args["owner"], github_args["repo"], github_args["project_name"], headers)
     print(f"Project ID: {project_id}")
 
     print("Fetching field IDs...")

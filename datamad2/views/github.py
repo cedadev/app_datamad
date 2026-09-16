@@ -82,9 +82,19 @@ def push_to_github(request, pk):
                            ))
             return redirect('grant_detail', pk=pk)
 
+    # Check the user has a github username
+    if not request.user.github_username:
+        messages.error(request,
+                       mark_safe(
+                           f'Your account does not have a Github username associated. '
+                           f'Populate <i>github_username</i> to allow this operation. '
+                           f'Please add one here <a href="{reverse("user_update", args=[request.user.pk])}" target="_blank">Here</a>'
+                       ))
+        return redirect('grant_detail', pk=pk)
+
     try:
         issue = make_github_issue(request, grant.importedgrant)
-        link = issue.permalink()
+        link = issue.permalink() # TODO Unsure how this works?
 
         # Save the ticket link to the correct grant
         if link:
