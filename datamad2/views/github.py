@@ -94,7 +94,7 @@ def push_to_github(request, pk):
 
     try:
         issue = make_github_issue(request, grant.importedgrant)
-        link = issue.permalink() # TODO Unsure how this works?
+        link = issue["url"]
 
         # Save the ticket link to the correct grant
         if link:
@@ -118,7 +118,7 @@ class GithubTicketDeleteView(DatacentreAdminTestMixin, ObjectDeleteView):
     Unlink the Github ticket URL from the grant
     """
     model = GithubTicket
-    pk_url_kwarg = 'jt_pk'
+    pk_url_kwarg = 'gh_pk'
 
     def get_success_url(self):
         return reverse('grant_detail', kwargs={'pk': self.kwargs['pk']})
