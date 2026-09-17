@@ -320,7 +320,7 @@
         <div class="card mt-3">
             <div class="card-header">
                 {% if user.data_centre.value == CEDA %}
-                    <h4 class="card-title">Github Ticket Links</h4>
+                    <h4 class="card-title">Github Issue Links</h4>
                 {% else %}
                     <h4 class="card-title">JIRA Ticket Links</h4>
                 {% endif %}
@@ -345,9 +345,9 @@
                         {% endfor %}
 
                         </table>
-                        <a class="btn btn-primary w-100" title='Create Github ticket for your datacentre' data-toggle='tooltip'
+                        <a class="btn btn-primary w-100" title='Create Github issue for your datacentre' data-toggle='tooltip'
                         href="{% url 'github_convert' pk=imported_grant.grant.pk %}">
-                            <i class="fas fa-plus"></i> Create Github Ticket</a>
+                            <i class="fas fa-plus"></i> Create Github Issue</a>
 
                     {% else %}
                         {% for ticket in imported_grant.grant.jiraticket_set.all %}

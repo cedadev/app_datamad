@@ -174,8 +174,6 @@ def create_issue_body(request, imported_grant):
     <summary>Project abstract</summary>
     {abstract}
     </details>
-
-    # TODO: Add subtasks to GitHub issues?
     """
     # Remove chunks of four whitespaces from body
     body = body.replace("    ", "")
@@ -198,7 +196,8 @@ def assign_mappings():
         "ukri_id": "UKRI ID",
         "pi_name": "PI name",
         "pi_email": "PI email",
-        "labels": "Labels"
+        "labels": "Labels",
+        "funder": "Funder"
     }
     internal_keys = [
         "status",
@@ -210,6 +209,7 @@ def assign_mappings():
         "ukri_id",
         "pi_name",
         "pi_email",
+        "funder"
     ]
     return field_name_map, internal_keys
 
@@ -285,7 +285,8 @@ def make_github_issue(request, imported_grant) -> bool:
         "pi_email": pi_email,
         "actual_start_date": actual_start_date.strftime("%Y-%m-%d"),
         "actual_end_date": actual_end_date.strftime("%Y-%m-%d"),
-        "dmp_due": dmp_due.strftime("%Y-%m-%d")
+        "dmp_due": dmp_due.strftime("%Y-%m-%d"),
+        "funder": "NERC"
     }
 
     for key, field_info in field_ids.items():
