@@ -1018,25 +1018,6 @@ reference = "4653d071d5a53e1ab0953b2a83cb1265cc05ab91"
 resolved_reference = "4653d071d5a53e1ab0953b2a83cb1265cc05ab91"
 
 [[package]]
-name = "githubetl"
-version = "0.1.0"
-description = "Provides tools to convert Jira tickets into Github issues, as well as create Github issues directly."
-optional = false
-python-versions = ">=3.13"
-groups = ["main"]
-files = []
-develop = false
-
-[package.dependencies]
-requests = "<3.0.0"
-
-[package.source]
-type = "git"
-url = "https://github.com/cedadev/ceda-jira-github-etl.git"
-reference = "fba5e2a104a486c8f1cc9d0b44302ba31755d0c8"
-resolved_reference = "fba5e2a104a486c8f1cc9d0b44302ba31755d0c8"
-
-[[package]]
 name = "h11"
 version = "0.16.0"
 description = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
@@ -3019,4 +3000,4 @@ test = ["zope.security (>=7.3)", "zope.testrunner (>=6.4)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13, <3.14"
-content-hash = "7fc895e701d0aea580a87d59c63863c30e297ffa3dc0b06beee68dc62ce8fd81"
+content-hash = "901f19ad98e78195188f387e7b5dbfa632faf6a7a2b8b362caabacb2dd1f441a"
