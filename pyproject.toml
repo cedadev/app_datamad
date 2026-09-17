@@ -31,7 +31,7 @@ django-jira-oauth = {git = "https://github.com/cedadev/django-jira-oauth.git", r
 fwtheme-django = {git = "https://github.com/cedadev/fwtheme-django.git", rev = "786021bdb6f34cf693d44e96803a5df7d88b76fd"}
 fwtheme-django-ceda-serv = {git = "https://github.com/cedadev/fwtheme-django-ceda-serv.git", rev = "4653d071d5a53e1ab0953b2a83cb1265cc05ab91"}
 orgtheme-datamad = {git = "https://github.com/cedadev/orgtheme-datamad.git", rev = "015dc5767f75b068a8883bf7380056e863be19a2"}
-githubetl = {git = "https://github.com/cedadev/ceda-jira-github-etl.git", rev = "726a3c449c7c120d3411801c1d1b147626e50dbf"}
+githubetl = {git = "https://github.com/cedadev/ceda-jira-github-etl.git", rev = "fba5e2a104a486c8f1cc9d0b44302ba31755d0c8"}
 
 # Suspected main dependencies
 babel = "2.16.0"
