@@ -2,7 +2,7 @@ from django.conf import settings
 from django.urls import reverse
 import logging
 from dateutil.relativedelta import relativedelta
-from githubetl import jira_to_github
+from datamad2.githubetl import jira_to_github
 
 # get_repository_id, create_issue, update_custom_field, get_type_ids, update_issue_type, add_issue_to_project, get_user_ids, get_project_id, get_field_ids, calculate_dmp_due_date
 
