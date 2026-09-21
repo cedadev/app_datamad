@@ -257,7 +257,7 @@ def make_github_issue(request, imported_grant) -> bool:
 
     assignee_ids = jira_to_github.get_user_ids(github_args["owner"], github_args["repo"], mapped_usernames, headers)
 
-    print("Got the assignee IDs!" assignee_ids)
+    print("Got the assignee IDs!", assignee_ids)
 
     gh_issue = jira_to_github.create_issue(repository_id, title, body, headers, assignee_ids, None)
 
