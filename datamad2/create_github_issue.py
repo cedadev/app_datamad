@@ -232,7 +232,7 @@ def make_github_issue(request, imported_grant) -> bool:
     print("Got the repository ID!", repository_id)
 
     if (imported_grant.nerc_id == "") & (imported_grant.ukri_id == ""):
-        if imported_grant.grant_ref.contains("/"):
+        if imported_grant.grant_ref.value.contains("/"):
             nerc_id = imported_grant.grant_ref.replace('/', '\\u002f')
             ukri_id = imported_grant.grant_ref.replace('/', '\\u002f')
         else:
