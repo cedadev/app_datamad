@@ -222,15 +222,15 @@ def make_github_issue(request, imported_grant) -> bool:
     github_args, headers= get_github_client(request)
     body = create_issue_body(request, imported_grant)
 
-    print("owner: ", github_args["owner"])
-    print("repo: ", github_args["repo"])
-    print("headers: ", headers)
-
     repository_id = jira_to_github.get_repository_id(github_args["owner"], github_args["repo"], headers)
 
     if (imported_grant.nerc_id == "") & (imported_grant.ukri_id == ""):
-        nerc_id = imported_grant.grant_ref.replace('/', '\\u002f')
-        ukri_id = imported_grant.grant_ref.replace('/', '\\u002f')
+        if imported_grant.grant_ref.contains("/"):
+            nerc_id = imported_grant.grant_ref.replace('/', '\\u002f')
+            ukri_id = imported_grant.grant_ref.replace('/', '\\u002f')
+        else:
+            nerc_id = imported_grant.grant_ref
+            ukri_id = imported_grant.grant_ref
     else:
         nerc_id = imported_grant.nerc_id
         ukri_id = imported_grant.ukri_id
