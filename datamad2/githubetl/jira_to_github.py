@@ -550,7 +550,7 @@ def fetch_and_create(issue_key, repository_id, project_id, field_ids, headers, o
 
     # ["status"]["name"] = status
     status = issue_data["fields"]["status"]["name"]
-    status_mapped = "Unknown"
+    status_mapped = status_mapping.get(status, "Unknown")
 
     # ["customfield_11660"] = actual_start_date
     actual_start_date = issue_data["fields"]["customfield_11660"]
@@ -656,6 +656,7 @@ def fetch_and_create(issue_key, repository_id, project_id, field_ids, headers, o
     - [ ] Create new conversation & send DMP link (saved reply 01.01) (Help Scout)
     - [ ] Link conversation to GitHub issue (Help Scout)
     - [ ] Update *Date contacted PI* field (DataMad & GitHub)
+    - [ ] Update *Help Scout* and *DSW* links (GitHub)
     - [ ] ⏰ Add comment to set first chase reminder (GitHub): /remind me to send the first DMP chase if no response in 6 weeks
 
     ### DMP comms
@@ -676,12 +677,8 @@ def fetch_and_create(issue_key, repository_id, project_id, field_ids, headers, o
     - [ ] 👋 Send annual check-in 1 (saved reply 03.01) (Help Scout)
     - [ ] 👋 Send annual check-in 2 (saved reply 03.01) (Help Scout)
     - [ ] 👋 Send annual check-in 3 (saved reply 03.01) (Help Scout)
-    - [ ] 👋 Check if *Actual end date* fields match (DataMad & GitHub), and then either: 
-      - [ ] Send 6-month check-in (saved reply 03.02) (Help Scout)
-      - [ ] Or update *Actual end date* field (GitHub)
-    - [ ] 👋 Check if *Actual end date* fields match (DataMad & GitHub), and then either:
-      - [ ] Send data due email (saved reply 03.03) (Help Scout)
-      - [ ] Or update *Actual end date* field (GitHub)
+    - [ ] 👋 Send 6-month check-in (saved reply 03.02) (Help Scout)
+    - [ ] 👋 Send data due check-in (saved reply 03.03) (Help Scout)
     - [ ] Change status to *Data due* (GitHub)
 
     ## Data due
@@ -788,7 +785,8 @@ def fetch_and_create(issue_key, repository_id, project_id, field_ids, headers, o
             "pi_email": pi_email,
             "actual_start_date": actual_start_date,
             "actual_end_date": actual_end_date,
-            "dmp_due": dmp_due
+            "dmp_due": dmp_due,
+            "funder": "NERC"
         }
 
         for key, field_info in field_ids.items():
@@ -842,7 +840,8 @@ if __name__ == "__main__":
             "ukri_id": "UKRI ID",
             "pi_name": "PI name",
             "pi_email": "PI email",
-            "labels": "Labels"
+            "labels": "Labels",
+            "funder": "Funder"
         }
         internal_keys = [
             "status",
@@ -854,6 +853,7 @@ if __name__ == "__main__":
             "ukri_id",
             "pi_name",
             "pi_email",
+            "funder"
         ]
         mapped_field_names = [field_name_map.get(name, name) for name in internal_keys]
         field_info_map = get_field_ids(project_id, mapped_field_names, headers)

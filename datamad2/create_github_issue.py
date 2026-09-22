@@ -113,6 +113,7 @@ def create_issue_body(request, imported_grant):
     - [ ] Create new conversation & send DMP link (saved reply 01.01) (Help Scout)
     - [ ] Link conversation to GitHub issue (Help Scout)
     - [ ] Update *Date contacted PI* field (DataMad & GitHub)
+    - [ ] Update *Help Scout* and *DSW* links (GitHub)
     - [ ] ⏰ Add comment to set first chase reminder (GitHub): /remind me to send the first DMP chase if no response in 6 weeks
 
     ### DMP comms
@@ -133,12 +134,8 @@ def create_issue_body(request, imported_grant):
     - [ ] 👋 Send annual check-in 1 (saved reply 03.01) (Help Scout)
     - [ ] 👋 Send annual check-in 2 (saved reply 03.01) (Help Scout)
     - [ ] 👋 Send annual check-in 3 (saved reply 03.01) (Help Scout)
-    - [ ] 👋 Check if *Actual end date* fields match (DataMad & GitHub), and then either: 
-      - [ ] Send 6-month check-in (saved reply 03.02) (Help Scout)
-      - [ ] Or update *Actual end date* field (GitHub)
-    - [ ] 👋 Check if *Actual end date* fields match (DataMad & GitHub), and then either:
-      - [ ] Send data due email (saved reply 03.03) (Help Scout)
-      - [ ] Or update *Actual end date* field (GitHub)
+    - [ ] 👋 Send 6-month check-in (saved reply 03.02) (Help Scout)
+    - [ ] 👋 Send data due check-in (saved reply 03.03) (Help Scout)
     - [ ] Change status to *Data due* (GitHub)
 
     ## Data due
