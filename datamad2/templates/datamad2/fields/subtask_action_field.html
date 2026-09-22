@@ -1,4 +1,4 @@
-{% if user.data_centre.value == CEDA %}
+{% if user.data_centre.name == 'CEDA' %}
     <a title='Edit Subtask' data-toggle='tooltip' href="{% url 'Githubsubtask_update' pk=record.pk %}"><i class="fas fa-edit text-primary"></i>&nbsp</a>
     <a title='Remove Subtask' data-toggle='tooltip' href="{% url 'Githubsubtask_delete' pk=record.pk %}"><i class="fas fa-trash-alt text-danger"></i></a>
 {% else %}
@@ -6,7 +6,7 @@
     <a title='Remove Subtask' data-toggle='tooltip' href="{% url 'JIRAsubtask_delete' pk=record.pk %}"><i class="fas fa-trash-alt text-danger"></i></a>
 {% endif %}
 
-{% if user.data_centre.value == CEDA %}
+{% if user.data_centre.name == 'CEDA' %}
     <a title='Edit Subtask' data-toggle='tooltip' href="{% url 'Githubsubtask_update' pk=record.pk %}"><i class="fas fa-edit text-primary"></i>&nbsp</a>
     <a title='Remove Subtask' data-toggle='tooltip' href="{% url 'Githubsubtask_delete' pk=record.pk %}"><i class="fas fa-trash-alt text-danger"></i></a>
 {% else %}

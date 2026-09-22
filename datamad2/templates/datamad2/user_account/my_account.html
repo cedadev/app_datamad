@@ -15,7 +15,7 @@
                 <a class="nav-link" href="{% url 'datacentre' %}"><i class="fas fa-database"></i>&nbsp;Datacentre</a>
                 <a class="nav-link ml-4" href="{% url 'user_list' %}"><i
                         class="fas fa-users"></i>&nbsp;{{ user.data_centre.name }} Users</a>
-                {% if user.data_centre.value == CEDA %}
+                {% if user.data_centre.name == 'CEDA' %}
                     <a class="nav-link ml-4" href="{% url 'github_issue_type' %}"><i class="fas fa-flag"></i>&nbsp;Github Issue
                     Fields</a>
                 {% else %}
@@ -24,7 +24,7 @@
                 {% endif %}
 
                 
-                {% if user.data_centre.value == CEDA %}
+                {% if user.data_centre.name == 'CEDA' %}
                     <a class="nav-link ml-4" href="{% url 'Githubsubtask_list' %}"><i class="fas fa-tasks"></i>&nbsp;Github Subtasks</a>
                 {% else %}
                     <a class="nav-link ml-4" href="{% url 'JIRAsubtask_list' %}"><i class="fas fa-tasks"></i>&nbsp;JIRA Subtasks</a>

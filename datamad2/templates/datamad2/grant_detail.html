@@ -319,15 +319,15 @@
         </div>
         <div class="card mt-3">
             <div class="card-header">
-                {% if user.data_centre.value == CEDA %}
-                    <h4 class="card-title">Github Issue Links</h4>
+                {% if user.data_centre.name == 'CEDA' %}
+                    <h4 class="card-title">Github Issue Links </h4>
                 {% else %}
                     <h4 class="card-title">JIRA Ticket Links</h4>
                 {% endif %}
             </div>
             <div class="card-body">
                 <table class="table table-borderless">
-                    {% if user.data_centre.value == CEDA %}
+                    {% if user.data_centre.name == 'CEDA' %}
                         {% for ticket in imported_grant.grant.githubticket_set.all %}
                             <tr>
                                 <td>
