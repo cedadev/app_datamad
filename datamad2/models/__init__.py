@@ -13,4 +13,5 @@ from .grants import ImportedGrant, Grant
 from .users import User, DataCentre
 from .document_store import Document
 from .data_management_plans import DocumentTemplate, DataProduct, DataFormat, PreservationPlan
-from .jira import Subtask, JIRAIssueType, JIRATicket
+from .jira import JIRASubtask, JIRAIssueType, JIRATicket
+from .github import GithubSubtask, GithubIssueType, GithubTicket

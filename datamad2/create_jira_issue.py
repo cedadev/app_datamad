@@ -73,7 +73,7 @@ def map_datamad_to_jira(request, imported_grant):
     return issue_dict
 
 
-def make_issue(request, imported_grant):
+def make_jira_issue(request, imported_grant):
     """
     Convert a grant into a JIRA ticket
     :param request: Django request object
@@ -82,7 +82,7 @@ def make_issue(request, imported_grant):
     """
     jira = get_jira_client(request)
 
-    if (imported_grant.nerc_id is "") & (imported_grant.ukri_id is ""):
+    if (imported_grant.nerc_id == "") & (imported_grant.ukri_id == ""):
         issue_dict = {
             'project': str(request.user.data_centre.jira_project),
             'summary': f'{imported_grant.grant_ref}:{imported_grant.title}',
@@ -149,7 +149,7 @@ def create_subtask(subtask, request, new_issue, imported_grant, reporter):
     else:
         ref_time = imported_grant.actual_start_date
 
-    if (imported_grant.nerc_id is "") & (imported_grant.ukri_id is ""):
+    if (imported_grant.nerc_id == "") & (imported_grant.ukri_id == ""):
         subtask_dict = {'project': str(request.user.data_centre.jira_project),
                 'summary': f"{imported_grant.grant_ref}:{subtask.name}",
                 'description': '',

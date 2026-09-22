@@ -10,10 +10,11 @@ __contact__ = 'richard.d.smith@stfc.ac.uk'
 
 # Datamad imports
 import datamad2.forms as datamad_forms
-from datamad2.models import JIRAIssueType, JIRASubtask
+from datamad2.models import GithubIssueType, GithubSubtask
+from datamad2.models.github import GithubSubtask
 from datamad2.views.mixins import DatacentreAdminTestMixin, UpdateOrCreateMixin
 from datamad2.views.generic import ObjectDeleteView
-from datamad2.tables import JIRASubtaskTable
+from datamad2.tables import GithubSubtaskTable
 
 # Django imports
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -25,21 +26,21 @@ from django.core.exceptions import ObjectDoesNotExist
 from django_tables2.views import SingleTableView
 
 
-class MyAccountDatacentreJIRAIssueTypeView(LoginRequiredMixin, DatacentreAdminTestMixin, UpdateView):
+class MyAccountDatacentreGithubIssueTypeView(LoginRequiredMixin, DatacentreAdminTestMixin, UpdateView):
     """
     Provides the view to allow datacentre to map Datamad to the fields they have in
-    JIRA. Used when Users create JIRA issues.
+    Github. Used when Users create Github issues.
     """
     template_name = 'datamad2/user_account/account_datacentre_issuetype.html'
-    model = JIRAIssueType
-    form_class = datamad_forms.DatacentreJIRAIssueTypeForm
+    model = GithubIssueType
+    form_class = datamad_forms.DatacentreGithubIssueTypeForm
 
     def get_success_url(self):
-        return reverse('jira_issue_type')
+        return reverse('github_issue_type')
 
     def get_object(self, **kwargs):
         """
-        Overwrite the get_object method to only display the JIRAIssueType object for
+        Overwrite the get_object method to only display the GithubIssueType object for
         the current logged in users datacentre. This modification also means this view
         behaves as an update or create view. If the object doesn't exist, it will create
         one.
@@ -58,13 +59,13 @@ class MyAccountDatacentreJIRAIssueTypeView(LoginRequiredMixin, DatacentreAdminTe
         return initial
 
 
-class JIRASubtaskListView(LoginRequiredMixin, SingleTableView):
+class GithubSubtaskListView(LoginRequiredMixin, SingleTableView):
     """
-    List of JIRA Subtasks which can be attached to JIRA issues
+    List of Github Subtasks which can be attached to Github issues
     """
-    model = JIRASubtask
-    template_name = 'datamad2/user_account/JIRAsubtask_list.html'
-    table_class = JIRASubtaskTable
+    model = GithubSubtask
+    template_name = 'datamad2/user_account/Githubsubtask_list.html'
+    table_class = GithubSubtaskTable
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -73,17 +74,17 @@ class JIRASubtaskListView(LoginRequiredMixin, SingleTableView):
         return qs
 
 
-class JIRASubtaskUpdateCreateView(LoginRequiredMixin, UpdateOrCreateMixin, UpdateView):
+class GithubSubtaskUpdateCreateView(LoginRequiredMixin, UpdateOrCreateMixin, UpdateView):
     """
-    JIRA Subtask Update or Create view. If an object with the specified ID exists,
+    Github Subtask Update or Create view. If an object with the specified ID exists,
     it opens and edit form, otherwise creation form.
 
     Form is autofilled with creators Data Centre
     """
-    model = JIRASubtask
-    template_name = 'datamad2/user_account/JIRAsubtask_form.html'
-    form_class = datamad_forms.JIRASubtaskForm
-    success_url = reverse_lazy('JIRAsubtask_list')
+    model = GithubSubtask
+    template_name = 'datamad2/user_account/Githubsubtask_form.html'
+    form_class = datamad_forms.GithubSubtaskForm
+    success_url = reverse_lazy('Githubsubtask_list')
 
     def get_initial(self):
         initial = super().get_initial()
@@ -94,9 +95,9 @@ class JIRASubtaskUpdateCreateView(LoginRequiredMixin, UpdateOrCreateMixin, Updat
         return initial
 
 
-class JIRASubtaskDeleteView(DatacentreAdminTestMixin, ObjectDeleteView):
+class GithubSubtaskDeleteView(DatacentreAdminTestMixin, ObjectDeleteView):
     """
-    Delete the JIRA Subtask
+    Delete the Github Subtask
     """
-    model = JIRASubtask
-    success_url = reverse_lazy('JIRAsubtask_list')
+    model = GithubSubtask
+    success_url = reverse_lazy('Githubsubtask_list')

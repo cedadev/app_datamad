@@ -1,7 +1,7 @@
-from datamad2.models import Grant, ImportedGrant, User, DataCentre, Subtask
+from datamad2.models import Grant, ImportedGrant, User, DataCentre, JIRASubtask, GithubSubtask
 from rest_framework import viewsets
 from datamad2_api.serializers import GrantSerializer, ImportedGrantSerializer, \
-    UserSerializer, PermissionSerializer, DataCentreSerializer, SubtaskSerializer
+    UserSerializer, PermissionSerializer, DataCentreSerializer, JIRASubtaskSerializer, GithubSubtaskSerializer
 from django.contrib.auth.models import Permission
 
 class GrantViewSet(viewsets.ModelViewSet):
@@ -45,10 +45,16 @@ class DataCentreViewSet(viewsets.ModelViewSet):
     serializer_class = DataCentreSerializer
 
 
-class SubtaskViewSet(viewsets.ModelViewSet):
+class JIRASubtaskViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows sub-tasks to be viewed or edited.
     """
-    queryset = Subtask.objects.all()
-    serializer_class = SubtaskSerializer
+    queryset = JIRASubtask.objects.all()
+    serializer_class = JIRASubtaskSerializer
 
+class GithubSubtaskViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows sub-tasks to be viewed or edited.
+    """
+    queryset = GithubSubtask.objects.all()
+    serializer_class = GithubSubtaskSerializer

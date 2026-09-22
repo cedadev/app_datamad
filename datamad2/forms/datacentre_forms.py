@@ -9,13 +9,11 @@ __license__ = 'BSD - see LICENSE file in top-level package directory'
 __contact__ = 'richard.d.smith@stfc.ac.uk'
 
 from django import forms
-from datamad2.models import DataCentre, User, JIRAIssueType, DocumentTemplate, Subtask
+from datamad2.models import DataCentre, User, JIRAIssueType, GithubIssueType, DocumentTemplate, JIRASubtask, GithubSubtask
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 
 from datamad2.forms.mixins import CrispySubmitMixin
-
-import secrets
 
 
 class DatacentreForm(CrispySubmitMixin, forms.ModelForm):
@@ -52,15 +50,19 @@ class UserEditForm(CrispySubmitMixin, forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email', 'is_admin')
+        fields = ('first_name', 'last_name', 'email', 'github_username', 'is_admin')
         exclude = ('password',)
 
 
-class DatacentreIssueTypeForm(CrispySubmitMixin, forms.ModelForm):
+class DatacentreJIRAIssueTypeForm(CrispySubmitMixin, forms.ModelForm):
     class Meta:
         model = JIRAIssueType
         fields = '__all__'
 
+class DatacentreGithubIssueTypeForm(CrispySubmitMixin, forms.ModelForm):
+    class Meta:
+        model = GithubIssueType
+        fields = '__all__'
 
 class DocumentTemplateForm(CrispySubmitMixin, forms.ModelForm):
     class Meta:
@@ -84,9 +86,18 @@ class DocumentGenerationForm(forms.Form):
         self.fields['document_template'].queryset = DocumentTemplate.objects.filter(datacentre=datacentre)
 
 
-class SubtaskForm(CrispySubmitMixin, forms.ModelForm):
+class JIRASubtaskForm(CrispySubmitMixin, forms.ModelForm):
     class Meta:
-        model= Subtask
+        model= JIRASubtask
+        fields = '__all__'
+
+        widgets = {
+            'data_centre': forms.HiddenInput
+        }
+
+class GithubSubtaskForm(CrispySubmitMixin, forms.ModelForm):
+    class Meta:
+        model= GithubSubtask
         fields = '__all__'
 
         widgets = {

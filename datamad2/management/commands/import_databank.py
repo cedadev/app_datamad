@@ -460,8 +460,7 @@ class Command(BaseCommand):
         if debug == True:
             self.general_debug(df)
 
-
-        temp = df[df['GRANTREFERENCE'] == "NE/Y503265/1"]
+        # temp = df[df['GRANTREFERENCE'].str.match("57784")]
 
         # Checks on incoming data
         for row in tqdm(df.itertuples(), desc='Importing grants'):
@@ -534,7 +533,7 @@ class Command(BaseCommand):
                 else:  # All other grant types
                     # Set ACTUAL_START_DATE / ACTUAL_END_DATE  as PROPOSED_ST_DT/ PROPOSED_END_DT if actual start and end haven't yet been set in Databank.
                     # It will update once the actual start and end date are set in Databank.
-                    # This stops an issue where Jira needs a start/ end date, but the project may not start for months even though
+                    # This stops an issue where / Github needs a start/ end date, but the project may not start for months even though
                     # it is displayed in Datamad (also some projects also seem to start before their actual start dates as Databank takes a while to be updated,
                     # this ensures we don't miss the start dates of grants)
                     if (source_field == 'ACTUAL_START_DATE') & (value is None):

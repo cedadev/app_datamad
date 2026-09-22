@@ -16,7 +16,7 @@ from django.conf import settings
 
 # Datamad imports
 from datamad2.utils import generate_document_from_template, call_strip_date
-from datamad2.create_issue import map_datamad_to_jira
+from datamad2.create_jira_issue import map_datamad_to_jira
 from datamad2.models.grants import UNFUNDED_GRANT_TYPES
 
 # Python imports
