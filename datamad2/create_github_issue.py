@@ -135,7 +135,7 @@ def create_issue_body(request, imported_grant):
     - [ ] 👋 Send annual check-in 2 (saved reply 03.01) (Help Scout)
     - [ ] 👋 Send annual check-in 3 (saved reply 03.01) (Help Scout)
     - [ ] 👋 Send 6-month check-in (saved reply 03.02) (Help Scout)
-    - [ ] 👋 Send data due check-in (saved reply 03.03) (Help Scout)
+    - [ ] 👋 Send project due check-in (saved reply 03.03) (Help Scout)
     - [ ] Change status to *Data due* (GitHub)
 
     ## Data due
