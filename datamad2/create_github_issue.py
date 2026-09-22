@@ -222,20 +222,9 @@ def make_github_issue(request, imported_grant) -> bool:
     github_args, headers= get_github_client(request)
     body = create_issue_body(request, imported_grant)
 
-    print("Owner: ", github_args["owner"])
-    print("repo: ", github_args["repo"])
-    print("headers: ", headers)
-
-
     repository_id = jira_to_github.get_repository_id(github_args["owner"], github_args["repo"], headers)
 
-    print("Got the repository ID!", repository_id)
-
     if (imported_grant.nerc_id == "") & (imported_grant.ukri_id == ""):
-        # if "/" in imported_grant.grant_ref:
-        #     nerc_id = imported_grant.grant_ref.replace('/', '\\u002f')
-        #     ukri_id = imported_grant.grant_ref.replace('/', '\\u002f')
-        # else:
         nerc_id = imported_grant.grant_ref
         ukri_id = imported_grant.grant_ref
     else:
@@ -256,12 +245,7 @@ def make_github_issue(request, imported_grant) -> bool:
     mapped_usernames = [request.user.github_username]  # TODO, map to GitHub usernames
 
     assignee_ids = jira_to_github.get_user_ids(github_args["owner"], github_args["repo"], mapped_usernames, headers)
-
-    print("Got the assignee IDs!", assignee_ids)
-
     gh_issue = jira_to_github.create_issue(repository_id, title, body, headers, assignee_ids, None)
-
-    print("Created the issue!")
 
     # Attempt to set the repository-level issue type to 'Project'
     try:
@@ -270,8 +254,6 @@ def make_github_issue(request, imported_grant) -> bool:
             type_id = type_ids[0]
             try:
                 jira_to_github.update_issue_type(gh_issue["id"], type_id, headers)
-
-                print("updated the issue type!")
             except Exception as e:
                 print(f"Warning: failed to set issue type for {gh_issue['url']}: {e}")
         else:
@@ -285,17 +267,11 @@ def make_github_issue(request, imported_grant) -> bool:
     project_id = jira_to_github.get_project_id(github_args["owner"], github_args["repo"], github_args["project_name"], headers)
     field_name_map, internal_keys = assign_mappings()
 
-    print("project ID found")
-
     mapped_field_names = [field_name_map.get(name, name) for name in internal_keys]
     field_info_map = jira_to_github.get_field_ids(project_id, mapped_field_names, headers)
 
-    print("field info map obtained")
     field_ids = dict(zip(internal_keys, field_info_map.values()))
     item_id = jira_to_github.add_issue_to_project(project_id, gh_issue["id"], headers)
-    print("item ID obtained")
-
-    # Updated date fields to string format for update_custom_field function
 
     custom_values = {
         "status": status_mapped,
@@ -304,7 +280,7 @@ def make_github_issue(request, imported_grant) -> bool:
         "data_centre": data_centre,
         "pi_name": pi_name,
         "pi_email": pi_email,
-        "actual_start_date": actual_start_date.strftime("%Y-%m-%d"),
+        "actual_start_date": actual_start_date.strftime("%Y-%m-%d"), # Update date fields to string format for update_custom_field function
         "actual_end_date": actual_end_date.strftime("%Y-%m-%d"),
         "dmp_due": dmp_due.strftime("%Y-%m-%d"),
         "funder": "NERC"
@@ -313,7 +289,5 @@ def make_github_issue(request, imported_grant) -> bool:
     for key, field_info in field_ids.items():
         value = custom_values.get(key, "")
         jira_to_github.update_custom_field(project_id, item_id, field_info, value, headers)
-
-    print("Custom fields updated")
 
     return gh_issue
