@@ -76,7 +76,7 @@ def create_links(request, imported_grant):
             external_links += f"- [{link_title}]({link_url})\n"
         elif "DSW" in link:
             link_title = "DSW"
-            external_links += f"- [{link_title}]({""})\n"
+            external_links += f"- [{link_title}]({""})"
 
     return external_links
 
@@ -97,7 +97,8 @@ def create_issue_body(request, imported_grant):
 
     # Build issue body
     body = f"""# Links
-    {external_links}- [Dataset record]()
+    {external_links}
+    - [Dataset record]()
     - [Project record]()
     - [Instrument/Computation/Platform record]()
     - [Collection record]()

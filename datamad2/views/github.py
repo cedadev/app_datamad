@@ -93,9 +93,6 @@ def push_to_github(request, pk):
         return redirect('grant_detail', pk=pk)
 
     try:
-        lemon = request.user.github_username
-        lime = request.user.data_centre
-        pomelo = lime.name
         issue = make_github_issue(request, grant.importedgrant)
         link = issue["url"]
 
