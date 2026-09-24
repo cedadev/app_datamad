@@ -652,7 +652,7 @@ def fetch_and_create(issue_key, repository_id, project_id, field_ids, headers, o
     - [ ] If clearly no archival data: 
       - [ ] Update *Will grant produce data* field (DataMad)
       - [ ] Update *Will grant produce data* field, change status to *No archival data* & close issue (GitHub)
-    - [ ] Set up DMP (DSW)
+    - [ ] [Set up DMP](https://nerceds.fair-wizard.com/wizard/projects) (DSW)
     - [ ] Create new conversation & send DMP link (saved reply 01.01) (Help Scout)
     - [ ] Link conversation to GitHub issue (Help Scout)
     - [ ] Update *Date contacted PI* field (DataMad & GitHub)
