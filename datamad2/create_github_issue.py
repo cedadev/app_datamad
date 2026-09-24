@@ -110,8 +110,8 @@ def create_issue_body(request, imported_grant):
     - [ ] If clearly no archival data: 
       - [ ] Update *Will grant produce data* field (DataMad)
       - [ ] Update *Will grant produce data* field, change status to *No archival data* & close issue (GitHub)
-    - [ ] Set up DMP (DSW)
-    - [ ] Create new conversation & send DMP link (saved reply 01.01) (Help Scout)
+    - [ ] [Set up DMP](https://nerceds.fair-wizard.com/wizard/projects) (DSW)
+    - [ ] [Create new Help Scout conversation & send DMP link](https://secure.helpscout.net/inboxes/7b0c55db545d4969/conversation/new/) (saved reply 01.01) (Help Scout)
     - [ ] Link conversation to GitHub issue (Help Scout)
     - [ ] Update *Date contacted PI* field (DataMad & GitHub)
     - [ ] Update *Help Scout* and *DSW* links (GitHub)
