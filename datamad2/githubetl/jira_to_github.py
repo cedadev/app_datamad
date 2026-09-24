@@ -271,7 +271,7 @@ def get_user_ids(owner, repo, usernames, headers):
     query = """
     query($owner: String!, $repo: String!) {
       repository(owner: $owner, name: $repo) {
-        collaborators(first: 50) {
+        collaborators {
           nodes { id login }
         }
       }
