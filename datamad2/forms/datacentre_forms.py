@@ -33,7 +33,7 @@ class NewUserForm(CrispySubmitMixin, forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email', 'data_centre', 'is_admin')
+        fields = ('first_name', 'last_name', 'email', 'data_centre')
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -50,7 +50,7 @@ class UserEditForm(CrispySubmitMixin, forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email', 'github_username', 'is_admin')
+        fields = ('first_name', 'last_name', 'email', 'github_username')
         exclude = ('password',)
 
 

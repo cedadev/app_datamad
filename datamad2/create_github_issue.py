@@ -234,7 +234,7 @@ def make_github_issue(request, imported_grant) -> bool:
 
     data_centre = request.user.data_centre.name
     ukri_id = imported_grant.ukri_id
-    title = f"{imported_grant.nerc_id}:{imported_grant.title}"
+    title = f"{nerc_id}:{imported_grant.title}"
     pi_name = imported_grant.grant_holder
     pi_email = imported_grant.email
     actual_start_date = imported_grant.actual_start_date
