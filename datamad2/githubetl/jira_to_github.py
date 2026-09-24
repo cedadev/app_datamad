@@ -350,13 +350,20 @@ def update_custom_field(project_id, item_id, field_info, value, headers, safe_mo
     field_type = field_info["type"]
     gql_value = None
 
+    if value is None:
+        print(f"Skipping field '{field_info['name']}' because its value is None.")
+        return
+    if isinstance(value, str) and value.strip() == "":
+        print(f"Skipping field '{field_info['name']}' because its value is empty.")
+        return
+
     if field_type == "TEXT":
         gql_value = {"text": value}
     elif field_type == "DATE":
         try:
             dt = datetime.strptime(value, "%Y-%m-%d")
             gql_value = {"date": dt.strftime("%Y-%m-%d")}
-        except ValueError:
+        except (TypeError, ValueError):
             print(f"Warning: Invalid date format for field '{field_info['name']}': {value}")
             return
     elif field_type == "SINGLE_SELECT":
@@ -575,11 +582,10 @@ def fetch_and_create(issue_key, repository_id, project_id, field_ids, headers, o
     # ["customfield_11659"] = pi_name
     pi_name = issue_data["fields"]["customfield_11659"]
 
-    # ["customfield_13576"] = pi_email, or if None in ["customfield_13576"], pi_email = "NOT FOUND DURING MIGRATION"
     if issue_data["fields"]["customfield_13576"] != None:
         pi_email = issue_data["fields"]["customfield_13576"].lower()
     else:
-        pi_email = "NOT FOUND DURING MIGRATION"
+        pi_email = None
 
     # ["summary"] = title
     title = issue_data["fields"]["summary"]
