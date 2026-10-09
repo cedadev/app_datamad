@@ -27,7 +27,7 @@ from jfu.http import upload_receive, UploadResponse, JFUResponse
 import re
 
 DOCUMENT_NAMING_PATTERN_SIEBEL = re.compile(r"^(?P<grant_ref>\w*_\w*_\d*)_(?P<doc_type>\w*)(?P<extension>\.\w*)$")
-DOCUMENT_NAMING_PATTERN_DATABANK = re.compile(r"^(?P<grant_ref>\d{5})_(?P<doc_type>\w*)(?P<extension>\.\w*)$")
+DOCUMENT_NAMING_PATTERN_DATABANK = re.compile(r"^(?P<grant_ref>\d{5,7})_(?P<doc_type>\w*)(?P<extension>\.\w*)$")
 
 class FormatError(Exception):
     pass
