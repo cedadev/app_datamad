@@ -40,7 +40,8 @@ def get_jira_client(request):
         'access_token': request.session.get('jira_access_token'),
         'access_token_secret': request.session.get('jira_access_token_secret'),
         'consumer_key': settings.JIRA_CONSUMER_KEY,
-        'key_cert': settings.JIRA_PRIVATE_RSA_KEY
+        'key_cert': settings.JIRA_PRIVATE_RSA_KEY,
+        'signature_method': 'RSA-SHA1'
     }
 
     return JIRA(settings.JIRA_SERVER, oauth=oauth_dict)
@@ -87,7 +88,7 @@ def make_jira_issue(request, imported_grant):
             'project': str(request.user.data_centre.jira_project),
             'summary': f'{imported_grant.grant_ref}:{imported_grant.title}',
             'description': imported_grant.abstract,
-            'issuetype': {'id': str(request.user.data_centre.jiraissuetype.issuetype)},
+            'issuetype': {'id': str(request.user.data_centre.jiraissuetype.issuetype)}
         }
 
         nerc_id = imported_grant.grant_ref.replace('/', '\\u002f')
